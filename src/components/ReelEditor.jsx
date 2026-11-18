@@ -198,7 +198,7 @@ export default function ReelEditor() {
   useEffect(() => {
     if (videoRef.current && !videoRef.current.paused) return;
     drawFrame();
-  }, [caption, ratio, videoUrl, fitMode, style, textPosition, visualFilter, captionBackground, captionScale, captionStart, captionEnd, subtitles]);
+  }, [caption, captionEnabled, ratio, videoUrl, fitMode, style, textPosition, visualFilter, captionBackground, captionScale, captionStart, captionEnd, subtitles]);
 
   const previewFrame = () => {
     drawFrame();
