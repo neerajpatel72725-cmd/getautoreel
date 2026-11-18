@@ -20,7 +20,7 @@ export default function ReelEditor() {
   const [duration, setDuration] = useState(0);
   const [start, setStart] = useState(0);
   const [end, setEnd] = useState(0);
-  const [ratio, setRatio] = useState("9:16");
+  const [ratio, setRatio] = useState("original");
   const [caption, setCaption] = useState("");
   const [language, setLanguage] = useState("Hinglish");
   const [style, setStyle] = useState("Clean & cinematic");
@@ -29,7 +29,7 @@ export default function ReelEditor() {
   const [playbackSpeed, setPlaybackSpeed] = useState("1");
   const [videoVolume, setVideoVolume] = useState(100);
   const [visualFilter, setVisualFilter] = useState("none");
-  const [exportQuality, setExportQuality] = useState("8");
+  const [exportQuality, setExportQuality] = useState("original");
   const [currentTime, setCurrentTime] = useState(0);
   const [captionBackground, setCaptionBackground] = useState(true);
   const [captionScale, setCaptionScale] = useState(100);
@@ -116,7 +116,7 @@ export default function ReelEditor() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas || !video.videoWidth) return;
-    const [w, h] = ratio === "9:16" ? [720, 1280] : ratio === "1:1" ? [1080, 1080] : [1280, 720];
+    const [w, h] = ratio === "original" ? [video.videoWidth, video.videoHeight] : ratio === "9:16" ? [720, 1280] : ratio === "1:1" ? [1080, 1080] : [1280, 720];
     if (canvas.width !== w || canvas.height !== h) {
       canvas.width = w;
       canvas.height = h;
@@ -246,7 +246,10 @@ export default function ReelEditor() {
 
       const mimeType = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"]
         .find((type) => MediaRecorder.isTypeSupported(type));
-      const recorder = new MediaRecorder(output, { ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: Number(exportQuality) * 1000000, audioBitsPerSecond: 192000 });
+      const pixels = video.videoWidth * video.videoHeight;
+      const automaticBitrate = pixels >= 3840 * 2160 ? 50000000 : pixels >= 2560 * 1440 ? 30000000 : pixels >= 1920 * 1080 ? 16000000 : 10000000;
+      const selectedBitrate = exportQuality === "original" ? automaticBitrate : Number(exportQuality) * 1000000;
+      const recorder = new MediaRecorder(output, { ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: selectedBitrate, audioBitsPerSecond: 256000 });
       recorderRef.current = recorder;
       chunksRef.current = [];
       recorder.ondataavailable = (event) => {
@@ -318,7 +321,7 @@ export default function ReelEditor() {
           {videoUrl && <label className="reel-timeline">Timeline · scrub preview<input type="range" min={start} max={Math.max(end, start + 0.1)} step="0.05" value={Math.min(videoRef.current?.currentTime || start, end || duration)} onChange={(e) => { if (videoRef.current) { videoRef.current.currentTime = Number(e.target.value); drawFrame(); } }} /></label>}
         </div>
         <div className="reel-controls-panel">
-          <div className="reel-step"><span>01</span><div><h3>Upload your video</h3><p>MP4, WebM or MOV supported by your browser.</p></div></div>
+          <div className="reel-step"><span>01</span><div><h3>Upload your video</h3><p>Choose a video file. Preview starts locally; there is no server upload or waiting for a cloud transfer.</p></div></div>
           <label className={`reel-upload ${dragOver ? "is-dragging" : ""}`} onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={(e) => { e.preventDefault(); setDragOver(false); loadVideo(e.dataTransfer.files?.[0]); }}>
             <input type="file" accept="video/*" onChange={(e) => loadVideo(e.target.files?.[0])} />
             <span>＋</span><strong>{videoUrl ? "Choose another video" : "Choose video"}</strong><small>Files stay on your device</small>
@@ -331,11 +334,11 @@ export default function ReelEditor() {
             <label>End <b>{formatTime(end)}</b><input type="range" min="0" max={Math.max(duration, 0.1)} step="0.1" value={end} onChange={(e) => setEnd(Math.max(Number(e.target.value), start + 0.2))} /></label>
           </div>}
           <div className="reel-step"><span>03</span><div><h3>Make it yours</h3><p>Choose format, language and your editing vibe.</p></div></div>
-          <div className="reel-field"><label htmlFor="reel-ratio">Video format</label><select id="reel-ratio" value={ratio} onChange={(e) => setRatio(e.target.value)}><option>9:16</option><option>1:1</option><option>16:9</option></select></div>
+          <div className="reel-field"><label htmlFor="reel-ratio">Video format</label><select id="reel-ratio" value={ratio} onChange={(e) => setRatio(e.target.value)}><option value="original">Original · keep source dimensions</option><option value="9:16">9:16 · Reels</option><option value="1:1">1:1 · Square</option><option value="16:9">16:9 · Landscape</option></select></div>
           <div className="reel-field"><label htmlFor="reel-speed">Playback speed</label><select id="reel-speed" value={playbackSpeed} onChange={(e) => setPlaybackSpeed(e.target.value)}><option value="0.5">0.5× Slow motion</option><option value="0.75">0.75×</option><option value="1">1× Normal</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2× Fast</option></select></div>
           <div className="reel-field"><label htmlFor="reel-filter">Visual look</label><select id="reel-filter" value={visualFilter} onChange={(e) => setVisualFilter(e.target.value)}><option value="none">Original</option><option value="contrast(1.18) saturate(1.2)">Vibrant</option><option value="grayscale(1)">Black & white</option><option value="sepia(.45) contrast(1.08)">Warm vintage</option><option value="brightness(1.12) saturate(.85)">Bright soft</option></select></div>
           <div className="reel-field"><label htmlFor="reel-original-volume">Original video volume · {videoVolume}%</label><input id="reel-original-volume" type="range" min="0" max="100" value={videoVolume} onChange={(e) => setVideoVolume(Number(e.target.value))} /></div>
-          <div className="reel-field"><label htmlFor="reel-quality">Export quality</label><select id="reel-quality" value={exportQuality} onChange={(e) => setExportQuality(e.target.value)}><option value="5">Standard · 5 Mbps</option><option value="8">High · 8 Mbps</option><option value="12">Best · 12 Mbps</option></select></div>
+          <div className="reel-field"><label htmlFor="reel-quality">Export quality</label><select id="reel-quality" value={exportQuality} onChange={(e) => setExportQuality(e.target.value)}><option value="original">Original quality · Auto bitrate</option><option value="12">High · 12 Mbps</option><option value="20">Very high · 20 Mbps</option><option value="35">Maximum · 35 Mbps</option></select></div>
           <div className="reel-field"><label htmlFor="reel-fit">Video framing</label><select id="reel-fit" value={fitMode} onChange={(e) => setFitMode(e.target.value)}><option value="fill">Fill frame · crop edges</option><option value="fit">Fit whole video · add bars</option></select></div>
           <div className="reel-field"><label htmlFor="reel-language">Caption language · AI captions coming soon</label><select id="reel-language" value={language} onChange={(e) => setLanguage(e.target.value)}><option>Hindi</option><option>English</option><option>Hinglish</option></select></div>
           <div className="reel-field"><label htmlFor="reel-style">Text style</label><select id="reel-style" value={style} onChange={(e) => setStyle(e.target.value)}><option>Clean & cinematic</option><option>Bold creator</option><option>Minimal</option><option>Vlog</option></select></div>
@@ -356,7 +359,7 @@ export default function ReelEditor() {
           {musicUrl && <><label className="reel-volume">Music volume <b>{musicVolume}%</b><input type="range" min="0" max="100" value={musicVolume} onChange={(e) => setMusicVolume(Number(e.target.value))} /></label><button type="button" className="reel-secondary" onClick={() => setMusicUrl("")}>Remove music track</button></>}
           <button className="reel-export" type="button" onClick={exportReel} disabled={!videoUrl || busy}>{busy ? `Exporting… ${progress}%` : "✦ Export Reel"}</button>
           {busy && <progress className="reel-progress" max="100" value={progress} aria-label="Export progress" />}
-          <p className="reel-export-format">Export format is selected automatically by your browser (MP4 when supported, otherwise WebM).</p>
+          <p className="reel-export-format">Original mode keeps the source video dimensions and uses a high automatic export bitrate. Re-encoding can still cause slight quality changes; choosing 9:16, 1:1 or 16:9 crops/resizes the frame.</p>
           <p className="reel-status" role="status">{status || "Your files are processed locally in this browser."}</p>
           <p className="reel-note">Note: Language and style are setup preferences in this MVP. Automatic speech-to-caption generation and AI scene editing are planned for a later phase.</p>
         </div>
