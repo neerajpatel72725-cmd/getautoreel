@@ -866,3 +866,10 @@ footer hr {
     animation: none !important;
   }
 }
+
+.hero-badge{display:inline-flex;align-items:center;margin-bottom:17px;padding:7px 11px;border:1px solid #ffffff38;border-radius:99px;background:#ffffff12;color:#e7e4ff;font-size:10px;font-weight:800;letter-spacing:1.4px}
+.hero-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.hero .hero-actions .btn{min-height:46px}
+.hero-secondary-btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:12px 17px;border:1px solid #ffffff60;border-radius:10px;color:#fff;font-size:13px;font-weight:700}
+.hero-secondary-btn:hover{background:#ffffff16;transform:translateY(-2px)}
+@media(max-width:420px){.hero-actions{align-items:stretch;flex-direction:column}.hero-actions>*{width:100%}}

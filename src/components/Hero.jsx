@@ -2,33 +2,20 @@ export default function Hero({ totalTools }) {
   return (
     <section className="hero">
       <div className="hero-content">
-        <h1>🚀 Discover the Best AI Tools</h1>
-
+        <span className="hero-badge">AI DISCOVERY + CREATOR WORKSPACE</span>
+        <h1>Create scroll-stopping videos with GENORA AI.</h1>
         <p>
-          Explore powerful AI tools for Coding, Design,
-          Writing, Video Editing, Research and Productivity —
-          all in one place.
+          Discover useful AI tools and edit your own videos in one place.
+          Upload a clip, trim it, add text and music, then export a social-ready reel.
         </p>
-
-        <button className="btn">
-          Explore AI Tools
-        </button>
-
+        <div className="hero-actions">
+          <a className="btn" href="#reel-editor">✦ Open Reels Editor</a>
+          <a className="hero-secondary-btn" href="#tools">Explore AI Tools</a>
+        </div>
         <div className="hero-stats">
-          <div className="stat">
-            <h3>{totalTools}+</h3>
-            <span>AI Tools</span>
-          </div>
-
-          <div className="stat">
-            <h3>🔥</h3>
-            <span>Trending</span>
-          </div>
-
-          <div className="stat">
-            <h3>⚡</h3>
-            <span>Free & Paid</span>
-          </div>
+          <div className="stat"><h3>{totalTools}+</h3><span>AI Tools</span></div>
+          <div className="stat"><h3>9:16</h3><span>Reel Format</span></div>
+          <div className="stat"><h3>100%</h3><span>Local Editing</span></div>
         </div>
       </div>
     </section>

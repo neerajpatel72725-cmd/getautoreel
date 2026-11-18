@@ -5,6 +5,7 @@ import Hero from "./components/Hero";
 import OurAITools from "./components/OurAITools";
 import Categories from "./components/Categories";
 import AICreatorStudio from "./components/AICreatorStudio";
+import ReelEditor from "./components/ReelEditor";
 import ThumbnailGenerator from "./ThumbnailGenerator";
 import SearchBar from "./components/SearchBar";
 import ToolCard from "./components/ToolCard";
@@ -36,6 +37,7 @@ export default function App() {
           <a href="#home">Home</a>
           <a href="#tools">AI Tools</a>
           <a href="#categories">Categories</a>
+          <a href="#reel-editor">Reels Editor</a>
           <a href="#creator">Creator Studio</a>
         </div>
       </nav>
@@ -44,6 +46,8 @@ export default function App() {
         <section id="home">
           <Hero totalTools={filtered.length} />
         </section>
+
+        <ReelEditor />
 
         <section className="tool-discovery">
           <div className="section-heading">
