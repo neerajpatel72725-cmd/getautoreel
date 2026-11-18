@@ -141,6 +141,10 @@ export default function ReelEditor() {
       canvas.height = h;
     }
     const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      setStatus("Preview could not be created on this device. Close other tabs and reload the editor.");
+      return;
+    }
     const scale = fitMode === "fit" ? Math.min(w / video.videoWidth, h / video.videoHeight) : Math.max(w / video.videoWidth, h / video.videoHeight);
     const dw = video.videoWidth * scale;
     const dh = video.videoHeight * scale;
@@ -215,6 +219,11 @@ export default function ReelEditor() {
       setStatus("Upload a video and choose a valid trim range first.");
       return;
     }
+    if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !video.videoWidth || !video.videoHeight) {
+      setStatus("The video is still preparing. Wait until its preview is visible, then export.");
+      return;
+    }
+    if (busy) return;
     if (!window.MediaRecorder || !canvas.captureStream) {
       setStatus("Video export is not supported in this browser. Try the latest Chrome.");
       return;
@@ -265,12 +274,22 @@ export default function ReelEditor() {
         sourceStream?.getAudioTracks().forEach((track) => output.addTrack(track));
       }
 
-      const mimeType = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"]
-        .find((type) => MediaRecorder.isTypeSupported(type));
+      const mimeCandidates = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
+      const mimeType = typeof MediaRecorder.isTypeSupported === "function"
+        ? mimeCandidates.find((type) => MediaRecorder.isTypeSupported(type))
+        : undefined;
       const pixels = video.videoWidth * video.videoHeight;
       const automaticBitrate = pixels >= 3840 * 2160 ? 50000000 : pixels >= 2560 * 1440 ? 30000000 : pixels >= 1920 * 1080 ? 16000000 : 10000000;
       const selectedBitrate = exportQuality === "original" ? automaticBitrate : Number(exportQuality) * 1000000;
-      const recorder = new MediaRecorder(output, { ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: selectedBitrate, audioBitsPerSecond: 256000 });
+      const recorderOptions = { ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: selectedBitrate, audioBitsPerSecond: 256000 };
+      let recorder;
+      try {
+        recorder = new MediaRecorder(output, recorderOptions);
+      } catch (encodingError) {
+        // Some mobile browsers report a codec as supported but reject its options at runtime.
+        if (!mimeType) throw encodingError;
+        recorder = new MediaRecorder(output, { videoBitsPerSecond: selectedBitrate, audioBitsPerSecond: 128000 });
+      }
       recorderRef.current = recorder;
       chunksRef.current = [];
       recorder.ondataavailable = (event) => {
