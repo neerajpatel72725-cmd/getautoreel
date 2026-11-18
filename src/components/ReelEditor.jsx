@@ -26,6 +26,9 @@ export default function ReelEditor() {
   const [style, setStyle] = useState("Clean & cinematic");
   const [musicVolume, setMusicVolume] = useState(35);
   const [fitMode, setFitMode] = useState("fill");
+  const [playbackSpeed, setPlaybackSpeed] = useState("1");
+  const [videoVolume, setVideoVolume] = useState(100);
+  const [visualFilter, setVisualFilter] = useState("none");
   const [textPosition, setTextPosition] = useState("bottom");
   const [dragOver, setDragOver] = useState(false);
   const [videoName, setVideoName] = useState("");
@@ -89,7 +92,10 @@ export default function ReelEditor() {
     const dh = video.videoHeight * scale;
     ctx.fillStyle = "#080914";
     ctx.fillRect(0, 0, w, h);
+    ctx.save();
+    ctx.filter = visualFilter === "none" ? "none" : visualFilter;
     ctx.drawImage(video, (w - dw) / 2, (h - dh) / 2, dw, dh);
+    ctx.restore();
     if (caption.trim()) {
       const fontSize = Math.max(30, Math.round(w * (style === "Minimal" ? 0.045 : 0.055)));
       ctx.font = `${style === "Minimal" ? "600" : "800"} ${fontSize}px Arial, sans-serif`;
@@ -123,7 +129,7 @@ export default function ReelEditor() {
   useEffect(() => {
     if (videoRef.current && !videoRef.current.paused) return;
     drawFrame();
-  }, [caption, ratio, videoUrl, fitMode, style, textPosition]);
+  }, [caption, ratio, videoUrl, fitMode, style, textPosition, visualFilter]);
 
   const previewFrame = () => {
     drawFrame();
@@ -134,6 +140,8 @@ export default function ReelEditor() {
     const video = videoRef.current;
     if (!video || !duration) return;
     video.currentTime = start;
+    video.playbackRate = Number(playbackSpeed);
+    video.volume = videoVolume / 100;
     await video.play().catch(() => {});
   };
 
@@ -153,6 +161,8 @@ export default function ReelEditor() {
     setStatus("Preparing your reel…");
     try {
       video.pause();
+      video.playbackRate = Number(playbackSpeed);
+      video.volume = videoVolume / 100;
       if (Math.abs(video.currentTime - start) > 0.05) {
         await new Promise((resolve, reject) => {
           const timeout = window.setTimeout(() => reject(new Error("Could not seek to the selected start point. Please try again.")), 8000);
@@ -255,7 +265,7 @@ export default function ReelEditor() {
             {!videoUrl && <div className="reel-empty"><span>▶</span><strong>Your video preview</strong><small>Upload a clip to get started</small></div>}
           </div>
           <div className="reel-preview-controls">
-            <div className="reel-transport"><button type="button" className="reel-secondary" onClick={seekToStart} disabled={!videoUrl}>↺ Play from start</button><button type="button" className="reel-secondary" onClick={() => { if (videoRef.current) videoRef.current.paused ? videoRef.current.play() : videoRef.current.pause(); }} disabled={!videoUrl}>▶ / Pause</button></div>
+            <div className="reel-transport"><button type="button" className="reel-secondary" onClick={seekToStart} disabled={!videoUrl}>↺ Play from start</button><button type="button" className="reel-secondary" onClick={() => { if (videoRef.current) { videoRef.current.playbackRate = Number(playbackSpeed); videoRef.current.volume = videoVolume / 100; videoRef.current.paused ? videoRef.current.play() : videoRef.current.pause(); } }} disabled={!videoUrl}>▶ / Pause</button></div>
             <span>{formatTime(start)} — {formatTime(end || duration)}</span>
             <span>{ratio}</span>
           </div>
@@ -275,6 +285,9 @@ export default function ReelEditor() {
           </div>}
           <div className="reel-step"><span>03</span><div><h3>Make it yours</h3><p>Choose format, language and your editing vibe.</p></div></div>
           <div className="reel-field"><label htmlFor="reel-ratio">Video format</label><select id="reel-ratio" value={ratio} onChange={(e) => setRatio(e.target.value)}><option>9:16</option><option>1:1</option><option>16:9</option></select></div>
+          <div className="reel-field"><label htmlFor="reel-speed">Playback speed</label><select id="reel-speed" value={playbackSpeed} onChange={(e) => setPlaybackSpeed(e.target.value)}><option value="0.5">0.5× Slow motion</option><option value="0.75">0.75×</option><option value="1">1× Normal</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2× Fast</option></select></div>
+          <div className="reel-field"><label htmlFor="reel-filter">Visual look</label><select id="reel-filter" value={visualFilter} onChange={(e) => setVisualFilter(e.target.value)}><option value="none">Original</option><option value="contrast(1.18) saturate(1.2)">Vibrant</option><option value="grayscale(1)">Black & white</option><option value="sepia(.45) contrast(1.08)">Warm vintage</option><option value="brightness(1.12) saturate(.85)">Bright soft</option></select></div>
+          <div className="reel-field"><label htmlFor="reel-original-volume">Original video volume · {videoVolume}%</label><input id="reel-original-volume" type="range" min="0" max="100" value={videoVolume} onChange={(e) => setVideoVolume(Number(e.target.value))} /></div>
           <div className="reel-field"><label htmlFor="reel-fit">Video framing</label><select id="reel-fit" value={fitMode} onChange={(e) => setFitMode(e.target.value)}><option value="fill">Fill frame · crop edges</option><option value="fit">Fit whole video · add bars</option></select></div>
           <div className="reel-field"><label htmlFor="reel-language">Caption language · AI captions coming soon</label><select id="reel-language" value={language} onChange={(e) => setLanguage(e.target.value)}><option>Hindi</option><option>English</option><option>Hinglish</option></select></div>
           <div className="reel-field"><label htmlFor="reel-style">Text style</label><select id="reel-style" value={style} onChange={(e) => setStyle(e.target.value)}><option>Clean & cinematic</option><option>Bold creator</option><option>Minimal</option><option>Vlog</option></select></div>
