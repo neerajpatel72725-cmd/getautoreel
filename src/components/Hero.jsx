@@ -3,11 +3,11 @@ export default function Hero({ totalTools }) {
     <section className="hero reel-first-hero">
       <div className="hero-content">
         <span className="hero-badge">GENORA AI · VIDEO CREATOR</span>
-        <h1>Apna video chunein. Reel banayein.</h1>
-        <p>Shuruaat ke liye bas video select karein. Preview dekhein aur jab ready ho, export karein. Advanced options alag se milenge.</p>
+        <h1>Choose your video. Create your reel.</h1>
+        <p>Select a video, review your preview, and export when you’re ready. Advanced controls are available when you need them.</p>
         <div className="hero-actions">
-          <a className="btn" href="#reel-editor">✦ Reel banana shuru karein</a>
-          <a className="hero-secondary-btn" href="#reel-editor">3 simple steps ↓</a>
+          <a className="btn" href="#reel-editor">✦ Create your reel</a>
+          <a className="hero-secondary-btn" href="#reel-editor">How it works ↓</a>
         </div>
         <div className="hero-stats">
           <div className="stat"><h3>9:16</h3><span>Reels format</span></div>
