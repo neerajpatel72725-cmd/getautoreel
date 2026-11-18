@@ -46,6 +46,7 @@ export default function ReelEditor() {
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [pendingDownload, setPendingDownload] = useState(null);
 
   useEffect(() => () => {
     if (videoUrl) URL.revokeObjectURL(videoUrl);
@@ -59,6 +60,10 @@ export default function ReelEditor() {
     cancelAnimationFrame(frameRef.current);
     audioContextRef.current?.close().catch(() => {});
   }, []);
+
+  useEffect(() => () => {
+    if (pendingDownload?.url) URL.revokeObjectURL(pendingDownload.url);
+  }, [pendingDownload]);
 
   const loadVideo = (file) => {
     if (!file) return;
@@ -307,15 +312,14 @@ export default function ReelEditor() {
           return;
         }
         const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
         const extension = (recorder.mimeType || mimeType || "").includes("mp4") ? "mp4" : "webm";
-        link.download = `genora-ai-reel.${extension}`;
-        link.click();
-        setTimeout(() => URL.revokeObjectURL(url), 30000);
+        setPendingDownload((previous) => {
+          if (previous?.url) URL.revokeObjectURL(previous.url);
+          return { url, filename: `genora-ai-reel.${extension}` };
+        });
         setProgress(100);
         setBusy(false);
-        setStatus("Your reel is ready. Download started.");
+        setStatus("Your edited reel is ready. Tap Download edited reel when you want to save it.");
         video.pause();
       };
       recorder.start(1000);
@@ -383,7 +387,7 @@ export default function ReelEditor() {
               onTimeUpdate={(e) => { const t = e.currentTarget.currentTime; setCurrentTime(t); if (end > start && t >= end) { e.currentTarget.pause(); e.currentTarget.currentTime = end; } }}
               onPlay={() => { cancelAnimationFrame(frameRef.current); previewFrame(); }}
               onPause={() => cancelAnimationFrame(frameRef.current)}
-              onSeeked={drawFrame} playsInline controls={false} />
+              onSeeked={() => drawFrame()} playsInline controls={false} />
             <canvas ref={canvasRef} aria-label="Edited reel preview" />
             {!videoUrl && <div className="reel-empty"><span>▶</span><strong>Your video preview</strong><small>Upload a clip to get started</small></div>}
           </div>
@@ -433,6 +437,17 @@ export default function ReelEditor() {
           {musicUrl && <><label className="reel-volume">Music volume <b>{musicVolume}%</b><input type="range" min="0" max="100" value={musicVolume} onChange={(e) => setMusicVolume(Number(e.target.value))} /></label><button type="button" className="reel-secondary" onClick={() => setMusicUrl("")}>Remove music track</button></>}
           <button className="reel-export" type="button" onClick={exportReel} disabled={!videoUrl || videoLoading || busy}>{busy ? `Exporting… ${progress}%` : "✦ Export Reel"}</button>
           {busy && <progress className="reel-progress" max="100" value={progress} aria-label="Export progress" />}
+          {pendingDownload && <button type="button" className="reel-secondary" onClick={() => {
+            const link = document.createElement("a");
+            link.href = pendingDownload.url;
+            link.download = pendingDownload.filename;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            const url = pendingDownload.url;
+            setPendingDownload(null);
+            window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+          }}>↓ Download edited reel</button>}
           <p className="reel-export-format">Original mode keeps the source video dimensions and uses a high automatic export bitrate. Re-encoding can still cause slight quality changes; choosing 9:16, 1:1 or 16:9 crops/resizes the frame.</p>
           <p className="reel-status" role="status">{status || "Your files are processed locally in this browser."}</p>
           <p className="reel-note">Note: Language and style are setup preferences in this MVP. Automatic speech-to-caption generation and AI scene editing are planned for a later phase.</p>
