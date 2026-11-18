@@ -13,8 +13,13 @@ class AppErrorBoundary extends React.Component {
     return { hasError: true };
   }
 
+  componentDidMount() {
+    window.__GENORA_APP_MOUNTED__ = true;
+  }
+
   componentDidCatch(error, info) {
     console.error("GENORA application render error:", error, info);
+    window.__GENORA_APP_MOUNTED__ = true;
   }
 
   render() {
