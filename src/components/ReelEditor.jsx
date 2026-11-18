@@ -23,16 +23,16 @@ export default function ReelEditor() {
   const [duration, setDuration] = useState(0);
   const [start, setStart] = useState(0);
   const [end, setEnd] = useState(0);
-  const [ratio, setRatio] = useState("9:16");
+  const [ratio, setRatio] = useState("original");
   const [caption, setCaption] = useState("");
   const [captionEnabled, setCaptionEnabled] = useState(true);
   const [language, setLanguage] = useState("Hinglish");
   const [style, setStyle] = useState("Clean & cinematic");
   const [musicVolume, setMusicVolume] = useState(35);
-  const [fitMode, setFitMode] = useState("fill");
+  const [fitMode, setFitMode] = useState("fit");
   const [playbackSpeed, setPlaybackSpeed] = useState("1");
   const [videoVolume, setVideoVolume] = useState(100);
-  const [visualFilter, setVisualFilter] = useState("contrast(1.08) saturate(1.12) brightness(1.02)");
+  const [visualFilter, setVisualFilter] = useState("none");
   const [exportQuality, setExportQuality] = useState("original");
   const [currentTime, setCurrentTime] = useState(0);
   const [captionBackground, setCaptionBackground] = useState(true);
@@ -508,7 +508,7 @@ export default function ReelEditor() {
             setPendingDownload(null);
             window.setTimeout(() => URL.revokeObjectURL(url), 60000);
           }}>↓ Download edited reel</button></div>}
-          <p className="reel-export-format">Your exported file includes the selected crop, color filter, captions, speed and audio settings. Default preset: 9:16 vertical framing + subtle color enhancement. Choose Original dimensions and Original color if you do not want these changes. Re-encoding can slightly affect quality.</p>
+          <p className="reel-export-format">Your exported file includes the selected framing, color filter, captions, speed and audio settings. Default preset: original dimensions, original framing and no color filter. The browser re-encodes exported video, so a small quality difference may still occur.</p>
           <p className="reel-status" role="status">{status || "Your files are processed locally in this browser."}</p>
           <p className="reel-note">Important: Automatic AI editing, song-synced captions, smart cuts and photo selection are not active yet. This version exports the settings you choose; it does not create a complete AI-edited reel automatically.</p>
         </div>
