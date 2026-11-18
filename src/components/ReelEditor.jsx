@@ -112,11 +112,17 @@ export default function ReelEditor() {
     setStatus("This video format or codec is not supported by your browser. Try an MP4 (H.264) file.");
   };
 
-  const drawFrame = () => {
+  // Keep the interactive preview lightweight on phones; render exports at full source dimensions.
+  const drawFrame = (targetCanvas = canvasRef.current, maxDimension = 960) => {
     const video = videoRef.current;
-    const canvas = canvasRef.current;
+    const canvas = targetCanvas;
     if (!video || !canvas || !video.videoWidth) return;
-    const [w, h] = ratio === "original" ? [video.videoWidth, video.videoHeight] : ratio === "9:16" ? [720, 1280] : ratio === "1:1" ? [1080, 1080] : [1280, 720];
+    let [w, h] = ratio === "original" ? [video.videoWidth, video.videoHeight] : ratio === "9:16" ? [720, 1280] : ratio === "1:1" ? [1080, 1080] : [1280, 720];
+    if (Number.isFinite(maxDimension) && Math.max(w, h) > maxDimension) {
+      const previewScale = maxDimension / Math.max(w, h);
+      w = Math.max(1, Math.round(w * previewScale));
+      h = Math.max(1, Math.round(h * previewScale));
+    }
     if (canvas.width !== w || canvas.height !== h) {
       canvas.width = w;
       canvas.height = h;
@@ -215,9 +221,11 @@ export default function ReelEditor() {
           video.currentTime = start;
         });
       }
-      drawFrame();
+      // Separate full-resolution export surface prevents the phone preview from forcing a low-res export.
+      const exportCanvas = document.createElement("canvas");
+      drawFrame(exportCanvas, Infinity);
 
-      const canvasStream = canvas.captureStream(30);
+      const canvasStream = exportCanvas.captureStream(30);
       const output = new MediaStream([...canvasStream.getVideoTracks()]);
       let audioContext;
       let music;
@@ -276,7 +284,7 @@ export default function ReelEditor() {
       recorder.start(250);
       await video.play();
       const render = () => {
-        drawFrame();
+        drawFrame(exportCanvas, Infinity);
         setProgress(Math.min(99, Math.round(((video.currentTime - start) / (end - start)) * 100)));
         if (video.currentTime >= end || video.ended) {
           video.pause();
