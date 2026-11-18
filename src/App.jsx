@@ -5,6 +5,7 @@ import Hero from "./components/Hero";
 import OurAITools from "./components/OurAITools";
 import Categories from "./components/Categories";
 import AICreatorStudio from "./components/AICreatorStudio";
+import ReelEditor from "./components/ReelEditor";
 import ThumbnailGenerator from "./ThumbnailGenerator";
 import SearchBar from "./components/SearchBar";
 import ToolCard from "./components/ToolCard";
@@ -104,6 +105,8 @@ export default function App() {
             )}
           </div>
         </section>
+
+        <ReelEditor />
 
         <section id="creator" className="creator-section">
           <AICreatorStudio />
