@@ -3,18 +3,55 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Free Online Reels Video Editor | GENORA AI</title>
-  <meta name="description" content="Edit reels online for free with GENORA AI. Trim videos, add text captions and music, choose 9:16, 1:1 or 16:9, and export your video in your browser." />
+  <title>GENORA AI — Online Reels Video Editor</title>
+  <meta name="description" content="Edit reels online with GENORA AI. Trim videos, add text and music, choose social formats and export in your browser." />
   <meta name="robots" content="index,follow,max-image-preview:large" />
   <meta name="theme-color" content="#211d4c" />
   <link rel="canonical" href="https://toolmint-ai.vercel.app/" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Free Online Reels Video Editor | GENORA AI" />
+  <meta property="og:title" content="GENORA AI — Online Reels Video Editor" />
   <meta property="og:description" content="Trim videos, add text and music, and create social-ready reels in your browser." />
   <meta property="og:url" content="https://toolmint-ai.vercel.app/" />
+  <style>
+    html,body{margin:0;min-height:100%;background:#f7f8fc;font-family:Arial,sans-serif}
+    #boot-status{max-width:520px;margin:15vh auto;padding:28px;border-radius:18px;background:#fff;box-shadow:0 12px 40px #24284a14;color:#252442;text-align:center}
+    #boot-status p{color:#687087;line-height:1.6}
+    #boot-status button{padding:12px 20px;border:0;border-radius:10px;background:#6558e8;color:white;font-weight:700}
+  </style>
 </head>
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <section id="boot-status" role="status" aria-live="polite">
+      <h1>GENORA AI</h1>
+      <p>Loading your Reels Studio…</p>
+      <small>If this screen does not change, the app is still loading.</small>
+    </section>
+  </div>
+  <script>
+    window.__GENORA_BOOT_ERROR__ = function(message) {
+      var root = document.getElementById("root");
+      if (!root || document.getElementById("genora-boot-error")) return;
+      var panel = document.createElement("section");
+      panel.id = "genora-boot-error";
+      panel.style.cssText = "max-width:520px;margin:15vh auto;padding:28px;border-radius:18px;background:#fff;box-shadow:0 12px 40px #24284a14;color:#252442;text-align:center;font-family:Arial,sans-serif";
+      panel.innerHTML = "<h1>GENORA AI could not start</h1><p style='color:#687087;line-height:1.6'>The website files did not finish loading. Check your internet connection and reload. If this repeats, send the error code below to support.</p><p style='font-size:12px;overflow-wrap:anywhere;color:#a33'></p><button style='padding:12px 20px;border:0;border-radius:10px;background:#6558e8;color:white;font-weight:700' onclick='location.reload()'>Reload website</button>";
+      panel.querySelector("p:nth-of-type(2)").textContent = String(message || "APP_START_FAILED").slice(0,240);
+      root.replaceChildren(panel);
+    };
+    window.addEventListener("error", function(event) {
+      if (event.target && (event.target.tagName === "SCRIPT" || event.target.tagName === "LINK")) {
+        window.__GENORA_BOOT_ERROR__("ASSET_LOAD_FAILED: " + (event.target.src || event.target.href || "unknown asset"));
+      } else if (event.message) {
+        window.__GENORA_BOOT_ERROR__("RUNTIME_ERROR: " + event.message);
+      }
+    }, true);
+    window.addEventListener("unhandledrejection", function(event) {
+      window.__GENORA_BOOT_ERROR__("PROMISE_ERROR: " + (event.reason && event.reason.message || event.reason || "unknown"));
+    });
+    window.setTimeout(function() {
+      if (!window.__GENORA_APP_MOUNTED__) window.__GENORA_BOOT_ERROR__("APP_START_TIMEOUT: React did not mount within 15 seconds");
+    }, 15000);
+  </script>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
