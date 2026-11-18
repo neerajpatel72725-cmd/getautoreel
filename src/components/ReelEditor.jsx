@@ -271,11 +271,14 @@ export default function ReelEditor() {
       recorder.ondataavailable = (event) => {
         if (event.data.size) chunksRef.current.push(event.data);
       };
-      let renderTimer = null;
+      let renderFrameId = null;
+      let watchdogTimer = null;
       let exportFailed = false;
       const cleanupExport = () => {
-        if (renderTimer) window.clearInterval(renderTimer);
-        renderTimer = null;
+        if (renderFrameId !== null) cancelAnimationFrame(renderFrameId);
+        if (watchdogTimer !== null) window.clearInterval(watchdogTimer);
+        renderFrameId = null;
+        watchdogTimer = null;
         music?.pause();
         audioContext?.close().catch(() => {});
         output.getTracks().forEach((track) => track.stop());
@@ -324,12 +327,20 @@ export default function ReelEditor() {
       }
       let lastMediaTime = video.currentTime;
       let lastProgressAt = performance.now();
-      renderTimer = window.setInterval(() => {
+      // Render on every animation frame: a 100ms interval limited exports to roughly 10 FPS.
+      const renderExportFrame = () => {
+        if (recorder.state === "inactive") return;
+        drawFrame(exportCanvas, Infinity);
+        renderFrameId = requestAnimationFrame(renderExportFrame);
+      };
+      renderFrameId = requestAnimationFrame(renderExportFrame);
+
+      // Keep progress and stall detection separate from frame rendering.
+      watchdogTimer = window.setInterval(() => {
         if (recorder.state === "inactive") {
           cleanupExport();
           return;
         }
-        drawFrame(exportCanvas, Infinity);
         const now = performance.now();
         if (video.currentTime > lastMediaTime + 0.02) {
           lastMediaTime = video.currentTime;
@@ -346,7 +357,7 @@ export default function ReelEditor() {
         if (video.currentTime >= end - 0.03 || video.ended) {
           if (recorder.state !== "inactive") recorder.stop();
         }
-      }, 100);
+      }, 500);
     } catch (error) {
       if (recorderRef.current?.state && recorderRef.current.state !== "inactive") {
         try { recorderRef.current.stop(); } catch {}
