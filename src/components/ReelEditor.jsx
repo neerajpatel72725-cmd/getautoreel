@@ -30,6 +30,9 @@ export default function ReelEditor() {
   const [videoVolume, setVideoVolume] = useState(100);
   const [visualFilter, setVisualFilter] = useState("none");
   const [exportQuality, setExportQuality] = useState("8");
+  const [currentTime, setCurrentTime] = useState(0);
+  const [captionBackground, setCaptionBackground] = useState(true);
+  const [captionScale, setCaptionScale] = useState(100);
   const [textPosition, setTextPosition] = useState("bottom");
   const [dragOver, setDragOver] = useState(false);
   const [videoName, setVideoName] = useState("");
@@ -102,7 +105,7 @@ export default function ReelEditor() {
     ctx.drawImage(video, (w - dw) / 2, (h - dh) / 2, dw, dh);
     ctx.restore();
     if (caption.trim()) {
-      const fontSize = Math.max(30, Math.round(w * (style === "Minimal" ? 0.045 : 0.055)));
+      const fontSize = Math.max(24, Math.round(w * (style === "Minimal" ? 0.045 : 0.055) * captionScale / 100));
       ctx.font = `${style === "Minimal" ? "600" : "800"} ${fontSize}px Arial, sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -120,6 +123,12 @@ export default function ReelEditor() {
       const lineHeight = fontSize * 1.22;
       const anchor = textPosition === "top" ? 0.18 : textPosition === "center" ? 0.5 : 0.78;
       const y = h * anchor - ((lines.length - 1) * lineHeight) / 2;
+      if (captionBackground) {
+        const widest = Math.min(w * 0.9, Math.max(...lines.map((item) => ctx.measureText(item).width)) + fontSize * 0.8);
+        const boxHeight = lines.length * lineHeight + fontSize * 0.45;
+        ctx.fillStyle = "rgba(8, 9, 20, 0.62)";
+        ctx.fillRect((w - widest) / 2, y - boxHeight / 2 + lineHeight / 2, widest, boxHeight);
+      }
       ctx.lineWidth = style === "Minimal" ? 2 : Math.max(4, fontSize * 0.16);
       ctx.strokeStyle = "rgba(0,0,0,.88)";
       ctx.fillStyle = style === "Bold creator" ? "#ffe66d" : "#fff";
@@ -134,7 +143,7 @@ export default function ReelEditor() {
   useEffect(() => {
     if (videoRef.current && !videoRef.current.paused) return;
     drawFrame();
-  }, [caption, ratio, videoUrl, fitMode, style, textPosition, visualFilter]);
+  }, [caption, ratio, videoUrl, fitMode, style, textPosition, visualFilter, captionBackground, captionScale]);
 
   const previewFrame = () => {
     drawFrame();
@@ -205,7 +214,7 @@ export default function ReelEditor() {
         sourceStream?.getAudioTracks().forEach((track) => output.addTrack(track));
       }
 
-      const mimeType = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"]
+      const mimeType = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"]
         .find((type) => MediaRecorder.isTypeSupported(type));
       const recorder = new MediaRecorder(output, { ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: Number(exportQuality) * 1000000, audioBitsPerSecond: 192000 });
       recorderRef.current = recorder;
@@ -218,7 +227,8 @@ export default function ReelEditor() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = "genora-ai-reel.webm";
+        const extension = (recorder.mimeType || mimeType || "").includes("mp4") ? "mp4" : "webm";
+        link.download = `genora-ai-reel.${extension}`;
         link.click();
         setTimeout(() => URL.revokeObjectURL(url), 30000);
         music?.pause();
@@ -262,7 +272,7 @@ export default function ReelEditor() {
         <div className="reel-preview-panel">
           <div className="reel-preview-top"><span>LIVE PREVIEW</span><span className="reel-live-dot">● LOCAL EDITING</span></div>
           <div className={`reel-stage stage-${ratio.replace(":", "-")}`}>
-            <video ref={videoRef} src={videoUrl || undefined} onLoadedMetadata={onMetadata}
+            <video ref={videoRef} src={videoUrl || undefined} onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)} onLoadedMetadata={onMetadata}
               onPlay={() => { cancelAnimationFrame(frameRef.current); previewFrame(); }}
               onPause={() => cancelAnimationFrame(frameRef.current)}
               onSeeked={drawFrame} playsInline controls={false} />
@@ -271,7 +281,7 @@ export default function ReelEditor() {
           </div>
           <div className="reel-preview-controls">
             <div className="reel-transport"><button type="button" className="reel-secondary" onClick={seekToStart} disabled={!videoUrl}>↺ Play from start</button><button type="button" className="reel-secondary" onClick={() => { if (videoRef.current) { videoRef.current.playbackRate = Number(playbackSpeed); videoRef.current.volume = videoVolume / 100; videoRef.current.paused ? videoRef.current.play() : videoRef.current.pause(); } }} disabled={!videoUrl}>▶ / Pause</button></div>
-            <span>{formatTime(start)} — {formatTime(end || duration)}</span>
+            <span>{formatTime(currentTime)} / {formatTime(end || duration)}</span>
             <span>{ratio}</span>
           </div>
           {videoUrl && <label className="reel-timeline">Timeline · scrub preview<input type="range" min={start} max={Math.max(end, start + 0.1)} step="0.05" value={Math.min(videoRef.current?.currentTime || start, end || duration)} onChange={(e) => { if (videoRef.current) { videoRef.current.currentTime = Number(e.target.value); drawFrame(); } }} /></label>}
@@ -297,6 +307,8 @@ export default function ReelEditor() {
           <div className="reel-field"><label htmlFor="reel-fit">Video framing</label><select id="reel-fit" value={fitMode} onChange={(e) => setFitMode(e.target.value)}><option value="fill">Fill frame · crop edges</option><option value="fit">Fit whole video · add bars</option></select></div>
           <div className="reel-field"><label htmlFor="reel-language">Caption language · AI captions coming soon</label><select id="reel-language" value={language} onChange={(e) => setLanguage(e.target.value)}><option>Hindi</option><option>English</option><option>Hinglish</option></select></div>
           <div className="reel-field"><label htmlFor="reel-style">Text style</label><select id="reel-style" value={style} onChange={(e) => setStyle(e.target.value)}><option>Clean & cinematic</option><option>Bold creator</option><option>Minimal</option><option>Vlog</option></select></div>
+          <div className="reel-field"><label htmlFor="reel-caption-scale">Caption size · {captionScale}%</label><input id="reel-caption-scale" type="range" min="70" max="140" step="5" value={captionScale} onChange={(e) => setCaptionScale(Number(e.target.value))} /></div>
+          <label className="reel-caption-toggle"><input type="checkbox" checked={captionBackground} onChange={(e) => setCaptionBackground(e.target.checked)} /> Add readable caption background</label>
           <div className="reel-field"><label htmlFor="reel-text-position">Text position</label><select id="reel-text-position" value={textPosition} onChange={(e) => setTextPosition(e.target.value)}><option value="bottom">Bottom</option><option value="center">Center</option><option value="top">Top</option></select></div>
           <div className="reel-field"><label htmlFor="reel-caption">On-screen text / caption</label><textarea id="reel-caption" rows="2" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Write a short hook or caption…" /></div>
           <div className="reel-step"><span>04</span><div><h3>Add background music</h3><p>Use an audio file you have rights to use.</p></div></div>
@@ -304,6 +316,7 @@ export default function ReelEditor() {
           {musicUrl && <><label className="reel-volume">Music volume <b>{musicVolume}%</b><input type="range" min="0" max="100" value={musicVolume} onChange={(e) => setMusicVolume(Number(e.target.value))} /></label><button type="button" className="reel-secondary" onClick={() => setMusicUrl("")}>Remove music track</button></>}
           <button className="reel-export" type="button" onClick={exportReel} disabled={!videoUrl || busy}>{busy ? `Exporting… ${progress}%` : "✦ Export Reel"}</button>
           {busy && <progress className="reel-progress" max="100" value={progress} aria-label="Export progress" />}
+          <p className="reel-export-format">Export format is selected automatically by your browser (MP4 when supported, otherwise WebM).</p>
           <p className="reel-status" role="status">{status || "Your files are processed locally in this browser."}</p>
           <p className="reel-note">Note: Language and style are setup preferences in this MVP. Automatic speech-to-caption generation and AI scene editing are planned for a later phase.</p>
         </div>
