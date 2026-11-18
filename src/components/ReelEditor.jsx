@@ -291,7 +291,11 @@ export default function ReelEditor() {
       };
       recorder.onstop = () => {
         cleanupExport();
-        if (exportFailed) return;
+        if (exportFailed) {
+          setBusy(false);
+          setProgress(0);
+          return;
+        }
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "video/webm" });
         if (!blob.size) {
           setBusy(false);
