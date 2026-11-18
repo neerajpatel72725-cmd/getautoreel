@@ -41,6 +41,7 @@ export default function ReelEditor() {
   const [dragOver, setDragOver] = useState(false);
   const [videoName, setVideoName] = useState("");
   const [videoSize, setVideoSize] = useState(0);
+  const [videoDimensions, setVideoDimensions] = useState("");
   const [videoLoading, setVideoLoading] = useState(false);
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
@@ -100,11 +101,18 @@ export default function ReelEditor() {
   };
 
   const onMetadata = () => {
-    const length = videoRef.current?.duration || 0;
+    const video = videoRef.current;
+    const length = video?.duration || 0;
     setDuration(length);
     setEnd(length);
+    if (video?.videoWidth && video?.videoHeight) setVideoDimensions(`${video.videoWidth} × ${video.videoHeight}`);
+    setStatus("Video details loaded. Preparing the first preview frame…");
+  };
+
+  const onFirstFrameReady = () => {
     setVideoLoading(false);
     setStatus("Video ready. Your file stays on this device; no upload is required.");
+    drawFrame();
   };
 
   const onVideoError = () => {
@@ -313,7 +321,7 @@ export default function ReelEditor() {
         <div className="reel-preview-panel">
           <div className="reel-preview-top"><span>LIVE PREVIEW</span><span className="reel-live-dot">● LOCAL EDITING</span></div>
           <div className={`reel-stage stage-${ratio.replace(":", "-")}`}>
-            <video ref={videoRef} src={videoUrl || undefined} preload="metadata" onLoadStart={() => videoUrl && setVideoLoading(true)} onLoadedMetadata={onMetadata} onError={onVideoError}
+            <video ref={videoRef} src={videoUrl || undefined} preload="metadata" onLoadStart={() => videoUrl && setVideoLoading(true)} onLoadedMetadata={onMetadata} onLoadedData={onFirstFrameReady} onError={onVideoError}
               onTimeUpdate={(e) => { const t = e.currentTarget.currentTime; setCurrentTime(t); if (end > start && t >= end) { e.currentTarget.pause(); e.currentTarget.currentTime = end; } }}
               onPlay={() => { cancelAnimationFrame(frameRef.current); previewFrame(); }}
               onPause={() => cancelAnimationFrame(frameRef.current)}
@@ -331,10 +339,10 @@ export default function ReelEditor() {
         <div className="reel-controls-panel">
           <div className="reel-step"><span>01</span><div><h3>Upload your video</h3><p>Choose a video file. Preview starts locally; there is no server upload or waiting for a cloud transfer.</p></div></div>
           <label className={`reel-upload ${dragOver ? "is-dragging" : ""}`} onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={(e) => { e.preventDefault(); setDragOver(false); loadVideo(e.dataTransfer.files?.[0]); }}>
-            <input type="file" accept="video/*" onChange={(e) => loadVideo(e.target.files?.[0])} />
+            <input type="file" accept="video/*" onChange={(e) => { loadVideo(e.target.files?.[0]); e.target.value = ""; }} />
             <span>＋</span><strong>{videoUrl ? "Choose another video" : "Choose video"}</strong><small>Files stay on your device</small>
           </label>
-          {videoName && <div className="reel-file-meta"><span>▣</span><span title={videoName}>{videoName} · {(videoSize / (1024 * 1024)).toFixed(1)} MB</span><button type="button" onClick={() => { setVideoUrl(""); setVideoName(""); setVideoSize(0); setVideoLoading(false); setDuration(0); setStart(0); setEnd(0); setStatus(""); }}>Remove</button></div>}
+          {videoName && <div className="reel-file-meta"><span>▣</span><span title={videoName}>{videoName} · {(videoSize / (1024 * 1024)).toFixed(1)} MB{videoDimensions ? ` · ${videoDimensions}` : ""}</span><button type="button" onClick={() => { setVideoUrl(""); setVideoName(""); setVideoSize(0); setVideoDimensions(""); setVideoLoading(false); setDuration(0); setStart(0); setEnd(0); setStatus(""); }}>Remove</button></div>}
           {videoLoading && <p className="reel-loading" role="status"><span className="reel-spinner" /> Preparing video preview… Large 4K files may take longer on mobile.</p>}
           {videoUrl && <div className="reel-step"><span>02</span><div><h3>Trim your clip</h3><p>Set the start and end points.</p></div></div>}
           {videoUrl && <div className="reel-trim">
@@ -365,7 +373,7 @@ export default function ReelEditor() {
           <div className="reel-step"><span>04</span><div><h3>Add background music</h3><p>Use an audio file you have rights to use.</p></div></div>
           <label className="reel-audio-upload"><input type="file" accept="audio/*" onChange={(e) => loadMusic(e.target.files?.[0])} />♫ {musicUrl ? "Music added · change track" : "Add music track"}</label>
           {musicUrl && <><label className="reel-volume">Music volume <b>{musicVolume}%</b><input type="range" min="0" max="100" value={musicVolume} onChange={(e) => setMusicVolume(Number(e.target.value))} /></label><button type="button" className="reel-secondary" onClick={() => setMusicUrl("")}>Remove music track</button></>}
-          <button className="reel-export" type="button" onClick={exportReel} disabled={!videoUrl || busy}>{busy ? `Exporting… ${progress}%` : "✦ Export Reel"}</button>
+          <button className="reel-export" type="button" onClick={exportReel} disabled={!videoUrl || videoLoading || busy}>{busy ? `Exporting… ${progress}%` : "✦ Export Reel"}</button>
           {busy && <progress className="reel-progress" max="100" value={progress} aria-label="Export progress" />}
           <p className="reel-export-format">Original mode keeps the source video dimensions and uses a high automatic export bitrate. Re-encoding can still cause slight quality changes; choosing 9:16, 1:1 or 16:9 crops/resizes the frame.</p>
           <p className="reel-status" role="status">{status || "Your files are processed locally in this browser."}</p>
