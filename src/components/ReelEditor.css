@@ -26,3 +26,10 @@
 .reel-export:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 12px 24px #6558e844}
 @media(max-width:800px){.reel-preview-panel{position:static}.reel-stage{height:min(58vh,520px)}}
 @media(max-width:480px){.reel-heading h2{font-size:30px}.reel-heading p{font-size:13px}.reel-preview-top{font-size:9px}.reel-stage{min-height:250px}.reel-transport{width:100%}.reel-transport button{flex:1}}
+
+
+.reel-caption-toggle{display:flex;align-items:center;gap:10px;margin:4px 0 14px;padding:11px 12px;border:1px solid #e8e8f2;border-radius:10px;background:#fff;color:#555c70;font-size:12px;font-weight:600}
+.reel-caption-toggle input{width:17px;height:17px;flex:0 0 17px;margin:0;padding:0;accent-color:#6558e8}
+.reel-export-format{margin:8px 0 0;color:#858ba0;font-size:10px;line-height:1.5}
+.reel-preview-controls>span{white-space:nowrap}
+@media(max-width:480px){.reel-caption-toggle{font-size:11px}.reel-export-format{font-size:10px}}
