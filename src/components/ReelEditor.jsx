@@ -275,7 +275,7 @@ export default function ReelEditor() {
         <div className="reel-preview-panel">
           <div className="reel-preview-top"><span>LIVE PREVIEW</span><span className="reel-live-dot">● LOCAL EDITING</span></div>
           <div className={`reel-stage stage-${ratio.replace(":", "-")}`}>
-            <video ref={videoRef} src={videoUrl || undefined} onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)} onLoadedMetadata={onMetadata}
+            <video ref={videoRef} src={videoUrl || undefined} onLoadedMetadata={onMetadata}
               onTimeUpdate={(e) => { const t = e.currentTarget.currentTime; setCurrentTime(t); if (end > start && t >= end) { e.currentTarget.pause(); e.currentTarget.currentTime = end; } }}
               onPlay={() => { cancelAnimationFrame(frameRef.current); previewFrame(); }}
               onPause={() => cancelAnimationFrame(frameRef.current)}
