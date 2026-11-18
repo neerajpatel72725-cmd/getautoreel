@@ -47,6 +47,8 @@ export default function App() {
           <Hero totalTools={filtered.length} />
         </section>
 
+        <ReelEditor />
+
         <section className="tool-discovery">
           <div className="section-heading">
             <span className="eyebrow">YOUR AI TOOLKIT</span>
@@ -106,8 +108,6 @@ export default function App() {
             )}
           </div>
         </section>
-
-        <ReelEditor />
 
         <section id="creator" className="creator-section">
           <AICreatorStudio />
