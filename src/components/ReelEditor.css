@@ -8,3 +8,6 @@
 .reel-timeline{display:grid;gap:7px;margin-top:12px;padding:10px 12px;border:1px solid #e9eaf2;border-radius:9px;background:#fff;color:#666d81;font-size:11px;font-weight:700}
 .reel-timeline input{width:100%;padding:0;border:0;accent-color:#6558e8}
 .reel-timeline input:focus{box-shadow:none}
+
+.reel-transport{display:flex;gap:7px;flex-wrap:wrap}
+.reel-transport .reel-secondary{font-size:10px}
