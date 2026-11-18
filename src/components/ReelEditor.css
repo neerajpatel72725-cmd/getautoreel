@@ -58,3 +58,19 @@
 .reel-analysis-card{display:grid;gap:6px;padding:14px;border:1px solid #cce9e4;border-radius:12px;background:#f3fbf9;color:#255d56;font-size:12px}
 .reel-analysis-card strong{font-size:13px;color:#164e48}
 .reel-analysis-card small{margin-top:4px;color:#647b77;font-size:10px;line-height:1.5}
+
+
+/* Simple first-use flow */
+.reel-simple-intro{padding:14px 16px;border:1px solid #dcd8fa;border-radius:12px;background:#f7f6ff;color:#39317d}
+.reel-simple-intro strong{font-size:14px}
+.reel-simple-intro ol{margin:9px 0 7px;padding-left:21px;color:#555c70;font-size:12px;line-height:1.9}
+.reel-simple-intro small{color:#777d91;font-size:10px}
+.reel-advanced{border:1px solid #e6e5f1;border-radius:11px;background:#fbfbfe;overflow:hidden}
+.reel-advanced summary{padding:13px 14px;color:#5146bd;font-size:12px;font-weight:800;cursor:pointer;list-style:none}
+.reel-advanced summary::-webkit-details-marker{display:none}
+.reel-advanced summary:after{content:"＋";float:right}
+.reel-advanced[open] summary:after{content:"−"}
+.reel-advanced>*:not(summary){margin-left:12px;margin-right:12px}
+.reel-advanced[open]{padding-bottom:12px}
+.reel-controls-panel>.reel-export{margin-top:2px}
+.reel-note{padding:10px 12px;border-radius:9px;background:#fff8e9;color:#805d22;line-height:1.55}
