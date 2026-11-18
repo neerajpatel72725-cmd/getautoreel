@@ -291,7 +291,7 @@ export default function ReelEditor() {
         const musicSource = audioContext.createMediaElementSource(music);
         const gain = audioContext.createGain();
         gain.gain.value = musicVolume / 100;
-        musicSource.connect(gain).connect(audioContext.destination);
+        musicSource.connect(gain);
         const musicDestination = audioContext.createMediaStreamDestination();
         gain.connect(musicDestination);
         musicDestination.stream.getAudioTracks().forEach((track) => output.addTrack(track));
@@ -382,10 +382,14 @@ export default function ReelEditor() {
       }
       let lastMediaTime = video.currentTime;
       let lastProgressAt = performance.now();
-      // Render on every animation frame: a 100ms interval limited exports to roughly 10 FPS.
-      const renderExportFrame = () => {
+      let lastRenderedAt = 0;
+      // Match the 30 FPS capture stream without repeatedly drawing full-resolution frames at 60 FPS.
+      const renderExportFrame = (timestamp) => {
         if (recorder.state === "inactive") return;
-        drawFrame(exportCanvas, Infinity);
+        if (timestamp - lastRenderedAt >= 1000 / 30) {
+          drawFrame(exportCanvas, Infinity);
+          lastRenderedAt = timestamp;
+        }
         renderFrameId = requestAnimationFrame(renderExportFrame);
       };
       renderFrameId = requestAnimationFrame(renderExportFrame);
@@ -436,7 +440,7 @@ export default function ReelEditor() {
           <div className="reel-preview-top"><span>LIVE PREVIEW</span><span className="reel-live-dot">● LOCAL EDITING</span></div>
           <div className={`reel-stage stage-${ratio.replace(":", "-")}`}>
             <video ref={videoRef} src={videoUrl || undefined} preload="metadata" onLoadStart={() => videoUrl && setVideoLoading(true)} onLoadedMetadata={onMetadata} onLoadedData={onFirstFrameReady} onError={onVideoError}
-              onTimeUpdate={(e) => { const t = e.currentTarget.currentTime; setCurrentTime(t); if (end > start && t >= end) { e.currentTarget.pause(); e.currentTarget.currentTime = end; } }}
+              onTimeUpdate={(e) => { const t = e.currentTarget.currentTime; setCurrentTime(t); if (!busy && end > start && t >= end) { e.currentTarget.pause(); e.currentTarget.currentTime = end; } }}
               onPlay={() => { cancelAnimationFrame(frameRef.current); previewFrame(); }}
               onPause={() => cancelAnimationFrame(frameRef.current)}
               onSeeked={() => drawFrame()} playsInline controls={false} />
