@@ -33,7 +33,7 @@ function frameDifference(a, b) {
 
 async function detectBeats(file, duration, onProgress) {
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextClass || !file || file.size > 80 * 1024 * 1024) return [];
+  if (!AudioContextClass || !file || file.size > 25 * 1024 * 1024) return [];
   let audioContext;
   try {
     audioContext = new AudioContextClass();
