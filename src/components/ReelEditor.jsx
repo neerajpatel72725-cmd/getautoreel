@@ -27,6 +27,7 @@ export default function ReelEditor() {
   const [musicVolume, setMusicVolume] = useState(35);
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => () => {
     if (videoUrl) URL.revokeObjectURL(videoUrl);
@@ -107,6 +108,11 @@ export default function ReelEditor() {
     }
   };
 
+  useEffect(() => {
+    if (videoRef.current && !videoRef.current.paused) return;
+    drawFrame();
+  }, [caption, ratio, videoUrl]);
+
   const previewFrame = () => {
     drawFrame();
     frameRef.current = requestAnimationFrame(previewFrame);
@@ -131,14 +137,18 @@ export default function ReelEditor() {
       return;
     }
     setBusy(true);
+    setProgress(0);
     setStatus("Preparing your reel…");
     try {
       video.pause();
-      video.currentTime = start;
-      await new Promise((resolve) => {
-        if (Math.abs(video.currentTime - start) < 0.05) resolve();
-        else video.addEventListener("seeked", resolve, { once: true });
-      });
+      if (Math.abs(video.currentTime - start) > 0.05) {
+        await new Promise((resolve, reject) => {
+          const timeout = window.setTimeout(() => reject(new Error("Could not seek to the selected start point. Please try again.")), 8000);
+          video.addEventListener("seeked", () => { window.clearTimeout(timeout); resolve(); }, { once: true });
+          video.addEventListener("error", () => { window.clearTimeout(timeout); reject(new Error("The video could not be decoded.")); }, { once: true });
+          video.currentTime = start;
+        });
+      }
       drawFrame();
 
       const canvasStream = canvas.captureStream(30);
@@ -186,6 +196,9 @@ export default function ReelEditor() {
         setTimeout(() => URL.revokeObjectURL(url), 30000);
         music?.pause();
         audioContext?.close().catch(() => {});
+        output.getTracks().forEach((track) => track.stop());
+        canvasStream.getTracks().forEach((track) => track.stop());
+        setProgress(100);
         setBusy(false);
         setStatus("Your reel is ready. Download started.");
         video.pause();
@@ -194,6 +207,7 @@ export default function ReelEditor() {
       await video.play();
       const render = () => {
         drawFrame();
+        setProgress(Math.min(99, Math.round(((video.currentTime - start) / (end - start)) * 100)));
         if (video.currentTime >= end || video.ended) {
           video.pause();
           if (recorder.state !== "inactive") recorder.stop();
@@ -205,6 +219,7 @@ export default function ReelEditor() {
       frameRef.current = requestAnimationFrame(render);
     } catch (error) {
       setBusy(false);
+      setProgress(0);
       setStatus(error?.message || "Export failed. Please try again in Chrome.");
     }
   };
@@ -252,7 +267,8 @@ export default function ReelEditor() {
           <div className="reel-step"><span>04</span><div><h3>Add background music</h3><p>Use an audio file you have rights to use.</p></div></div>
           <label className="reel-audio-upload"><input type="file" accept="audio/*" onChange={(e) => loadMusic(e.target.files?.[0])} />♫ {musicUrl ? "Music added · change track" : "Add music track"}</label>
           {musicUrl && <label className="reel-volume">Music volume <b>{musicVolume}%</b><input type="range" min="0" max="100" value={musicVolume} onChange={(e) => setMusicVolume(Number(e.target.value))} /></label>}
-          <button className="reel-export" type="button" onClick={exportReel} disabled={!videoUrl || busy}>{busy ? "Preparing your reel…" : "✦ Export Reel"}</button>
+          <button className="reel-export" type="button" onClick={exportReel} disabled={!videoUrl || busy}>{busy ? `Exporting… ${progress}%` : "✦ Export Reel"}</button>
+          {busy && <progress className="reel-progress" max="100" value={progress} aria-label="Export progress" />}
           <p className="reel-status" role="status">{status || "Your files are processed locally in this browser."}</p>
           <p className="reel-note">Note: Language and style are setup preferences in this MVP. Automatic speech-to-caption generation and AI scene editing are planned for a later phase.</p>
         </div>
