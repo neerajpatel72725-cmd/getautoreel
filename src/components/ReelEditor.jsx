@@ -35,10 +35,16 @@ export default function ReelEditor() {
 
   useEffect(() => () => {
     if (videoUrl) URL.revokeObjectURL(videoUrl);
+  }, [videoUrl]);
+
+  useEffect(() => () => {
     if (musicUrl) URL.revokeObjectURL(musicUrl);
+  }, [musicUrl]);
+
+  useEffect(() => () => {
     cancelAnimationFrame(frameRef.current);
     audioContextRef.current?.close().catch(() => {});
-  }, [videoUrl, musicUrl]);
+  }, []);
 
   const loadVideo = (file) => {
     if (!file) return;
@@ -249,7 +255,7 @@ export default function ReelEditor() {
             {!videoUrl && <div className="reel-empty"><span>▶</span><strong>Your video preview</strong><small>Upload a clip to get started</small></div>}
           </div>
           <div className="reel-preview-controls">
-            <button type="button" className="reel-secondary" onClick={() => { if (videoRef.current) videoRef.current.paused ? videoRef.current.play() : videoRef.current.pause(); }} disabled={!videoUrl}>▶ / Pause</button>
+            <div className="reel-transport"><button type="button" className="reel-secondary" onClick={seekToStart} disabled={!videoUrl}>↺ Play from start</button><button type="button" className="reel-secondary" onClick={() => { if (videoRef.current) videoRef.current.paused ? videoRef.current.play() : videoRef.current.pause(); }} disabled={!videoUrl}>▶ / Pause</button></div>
             <span>{formatTime(start)} — {formatTime(end || duration)}</span>
             <span>{ratio}</span>
           </div>
