@@ -41,3 +41,7 @@
 .reel-caption-timing input{grid-column:1/-1;width:100%;accent-color:#6558e8}
 .reel-caption-timing b{color:#39317d}
 .reel-caption-timing .reel-secondary{justify-self:start;font-size:10px}
+
+.reel-loading{display:flex;align-items:center;gap:9px;margin:8px 0;padding:10px 12px;border-radius:10px;background:#f3f1ff;color:#5549b8;font-size:11px;line-height:1.5}
+.reel-spinner{width:14px;height:14px;flex:0 0 14px;border:2px solid #d8d2ff;border-top-color:#6558e8;border-radius:50%;animation:reel-spin .8s linear infinite}
+@keyframes reel-spin{to{transform:rotate(360deg)}}
