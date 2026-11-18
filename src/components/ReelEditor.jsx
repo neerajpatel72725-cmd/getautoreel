@@ -271,17 +271,34 @@ export default function ReelEditor() {
       recorder.ondataavailable = (event) => {
         if (event.data.size) chunksRef.current.push(event.data);
       };
-      recorder.onerror = () => {
-        setBusy(false);
-        setProgress(0);
-        setStatus("Export stopped because the browser could not encode this video. Try a shorter clip or close other apps and retry.");
+      let renderTimer = null;
+      let exportFailed = false;
+      const cleanupExport = () => {
+        if (renderTimer) window.clearInterval(renderTimer);
+        renderTimer = null;
         music?.pause();
         audioContext?.close().catch(() => {});
         output.getTracks().forEach((track) => track.stop());
         canvasStream.getTracks().forEach((track) => track.stop());
+        video.pause();
+      };
+      recorder.onerror = () => {
+        exportFailed = true;
+        cleanupExport();
+        setBusy(false);
+        setProgress(0);
+        setStatus("Export could not be encoded by this browser. Try a shorter clip, close other apps, and retry. Your original video is unchanged.");
       };
       recorder.onstop = () => {
+        cleanupExport();
+        if (exportFailed) return;
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "video/webm" });
+        if (!blob.size) {
+          setBusy(false);
+          setProgress(0);
+          setStatus("Export produced an empty file. Please retry in Chrome with the screen kept awake.");
+          return;
+        }
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
@@ -289,39 +306,47 @@ export default function ReelEditor() {
         link.download = `genora-ai-reel.${extension}`;
         link.click();
         setTimeout(() => URL.revokeObjectURL(url), 30000);
-        music?.pause();
-        audioContext?.close().catch(() => {});
-        output.getTracks().forEach((track) => track.stop());
-        canvasStream.getTracks().forEach((track) => track.stop());
         setProgress(100);
         setBusy(false);
         setStatus("Your reel is ready. Download started.");
         video.pause();
       };
-      recorder.start(250);
+      recorder.start(1000);
       try {
         await video.play();
       } catch {
         if (recorder.state !== "inactive") recorder.stop();
         throw new Error("Playback could not start for export. Tap Play once, then try Export again.");
       }
-      const exportStartedAt = performance.now();
-      const expectedDurationMs = ((end - start) / Number(playbackSpeed)) * 1000;
-      const render = () => {
-        drawFrame(exportCanvas, Infinity);
-        const mediaProgress = Math.max(0, (video.currentTime - start) / (end - start));
-        const wallProgress = expectedDurationMs > 0 ? (performance.now() - exportStartedAt) / expectedDurationMs : 0;
-        setProgress(Math.min(99, Math.round(Math.max(mediaProgress, Math.min(wallProgress, mediaProgress + 0.08)) * 100)));
-        if (video.currentTime >= end || video.ended) {
-          video.pause();
-          if (recorder.state !== "inactive") recorder.stop();
-          cancelAnimationFrame(frameRef.current);
+      let lastMediaTime = video.currentTime;
+      let lastProgressAt = performance.now();
+      renderTimer = window.setInterval(() => {
+        if (recorder.state === "inactive") {
+          cleanupExport();
           return;
         }
-        frameRef.current = requestAnimationFrame(render);
-      };
-      frameRef.current = requestAnimationFrame(render);
+        drawFrame(exportCanvas, Infinity);
+        const now = performance.now();
+        if (video.currentTime > lastMediaTime + 0.02) {
+          lastMediaTime = video.currentTime;
+          lastProgressAt = now;
+        } else if (now - lastProgressAt > 20000) {
+          exportFailed = true;
+          if (recorder.state !== "inactive") recorder.stop();
+          setStatus("Video processing stalled for 20 seconds. Keep this page open, prevent screen lock, then retry with a shorter clip.");
+          setProgress(0);
+          return;
+        }
+        const mediaProgress = Math.max(0, (video.currentTime - start) / (end - start));
+        setProgress(Math.min(99, Math.round(mediaProgress * 100)));
+        if (video.currentTime >= end - 0.03 || video.ended) {
+          if (recorder.state !== "inactive") recorder.stop();
+        }
+      }, 100);
     } catch (error) {
+      if (recorderRef.current?.state && recorderRef.current.state !== "inactive") {
+        try { recorderRef.current.stop(); } catch {}
+      }
       setBusy(false);
       setProgress(0);
       setStatus(error?.message || "Export failed. Please try again in Chrome.");
