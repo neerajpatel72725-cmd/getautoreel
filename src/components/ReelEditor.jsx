@@ -40,6 +40,8 @@ export default function ReelEditor() {
   const [textPosition, setTextPosition] = useState("bottom");
   const [dragOver, setDragOver] = useState(false);
   const [videoName, setVideoName] = useState("");
+  const [videoSize, setVideoSize] = useState(0);
+  const [videoLoading, setVideoLoading] = useState(false);
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -67,9 +69,12 @@ export default function ReelEditor() {
       setStatus("This file is over 500 MB. Please choose a smaller video for browser editing.");
       return;
     }
-    setVideoUrl(URL.createObjectURL(file));
+    const nextUrl = URL.createObjectURL(file);
+    setVideoLoading(true);
+    setVideoUrl(nextUrl);
     setVideoName(file.name);
-    setStatus("");
+    setVideoSize(file.size);
+    setStatus("Video selected. Preparing a lightweight preview on your device…");
     setStart(0);
     setEnd(0);
   };
@@ -98,6 +103,13 @@ export default function ReelEditor() {
     const length = videoRef.current?.duration || 0;
     setDuration(length);
     setEnd(length);
+    setVideoLoading(false);
+    setStatus("Video ready. Your file stays on this device; no upload is required.");
+  };
+
+  const onVideoError = () => {
+    setVideoLoading(false);
+    setStatus("This video format or codec is not supported by your browser. Try an MP4 (H.264) file.");
   };
 
   const drawFrame = () => {
@@ -290,7 +302,7 @@ export default function ReelEditor() {
         <div className="reel-preview-panel">
           <div className="reel-preview-top"><span>LIVE PREVIEW</span><span className="reel-live-dot">● LOCAL EDITING</span></div>
           <div className={`reel-stage stage-${ratio.replace(":", "-")}`}>
-            <video ref={videoRef} src={videoUrl || undefined} onLoadedMetadata={onMetadata}
+            <video ref={videoRef} src={videoUrl || undefined} preload="metadata" onLoadStart={() => videoUrl && setVideoLoading(true)} onLoadedMetadata={onMetadata} onError={onVideoError}
               onTimeUpdate={(e) => { const t = e.currentTarget.currentTime; setCurrentTime(t); if (end > start && t >= end) { e.currentTarget.pause(); e.currentTarget.currentTime = end; } }}
               onPlay={() => { cancelAnimationFrame(frameRef.current); previewFrame(); }}
               onPause={() => cancelAnimationFrame(frameRef.current)}
@@ -311,7 +323,8 @@ export default function ReelEditor() {
             <input type="file" accept="video/*" onChange={(e) => loadVideo(e.target.files?.[0])} />
             <span>＋</span><strong>{videoUrl ? "Choose another video" : "Choose video"}</strong><small>Files stay on your device</small>
           </label>
-          {videoName && <div className="reel-file-meta"><span>▣</span><span title={videoName}>{videoName}</span><button type="button" onClick={() => { setVideoUrl(""); setVideoName(""); setDuration(0); setStart(0); setEnd(0); setStatus(""); }}>Remove</button></div>}
+          {videoName && <div className="reel-file-meta"><span>▣</span><span title={videoName}>{videoName} · {(videoSize / (1024 * 1024)).toFixed(1)} MB</span><button type="button" onClick={() => { setVideoUrl(""); setVideoName(""); setVideoSize(0); setVideoLoading(false); setDuration(0); setStart(0); setEnd(0); setStatus(""); }}>Remove</button></div>}
+          {videoLoading && <p className="reel-loading" role="status"><span className="reel-spinner" /> Preparing video preview… Large 4K files may take longer on mobile.</p>}
           {videoUrl && <div className="reel-step"><span>02</span><div><h3>Trim your clip</h3><p>Set the start and end points.</p></div></div>}
           {videoUrl && <div className="reel-trim">
             <label>Start <b>{formatTime(start)}</b><input type="range" min="0" max={Math.max(duration, 0.1)} step="0.1" value={start} onChange={(e) => { const v = Number(e.target.value); setStart(Math.min(v, Math.max(0, end - 0.2))); }} /></label>
