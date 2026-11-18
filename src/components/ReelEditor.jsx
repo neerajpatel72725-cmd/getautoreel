@@ -33,6 +33,8 @@ export default function ReelEditor() {
   const [currentTime, setCurrentTime] = useState(0);
   const [captionBackground, setCaptionBackground] = useState(true);
   const [captionScale, setCaptionScale] = useState(100);
+  const [captionStart, setCaptionStart] = useState(0);
+  const [captionEnd, setCaptionEnd] = useState(0);
   const [textPosition, setTextPosition] = useState("bottom");
   const [dragOver, setDragOver] = useState(false);
   const [videoName, setVideoName] = useState("");
@@ -104,7 +106,8 @@ export default function ReelEditor() {
     ctx.filter = visualFilter === "none" ? "none" : visualFilter;
     ctx.drawImage(video, (w - dw) / 2, (h - dh) / 2, dw, dh);
     ctx.restore();
-    if (caption.trim()) {
+    const captionTime = video.currentTime || 0;
+    if (caption.trim() && captionTime >= captionStart && (!captionEnd || captionTime <= captionEnd)) {
       const fontSize = Math.max(24, Math.round(w * (style === "Minimal" ? 0.045 : 0.055) * captionScale / 100));
       ctx.font = `${style === "Minimal" ? "600" : "800"} ${fontSize}px Arial, sans-serif`;
       ctx.textAlign = "center";
@@ -143,7 +146,7 @@ export default function ReelEditor() {
   useEffect(() => {
     if (videoRef.current && !videoRef.current.paused) return;
     drawFrame();
-  }, [caption, ratio, videoUrl, fitMode, style, textPosition, visualFilter, captionBackground, captionScale]);
+  }, [caption, ratio, videoUrl, fitMode, style, textPosition, visualFilter, captionBackground, captionScale, captionStart, captionEnd]);
 
   const previewFrame = () => {
     drawFrame();
@@ -273,6 +276,7 @@ export default function ReelEditor() {
           <div className="reel-preview-top"><span>LIVE PREVIEW</span><span className="reel-live-dot">● LOCAL EDITING</span></div>
           <div className={`reel-stage stage-${ratio.replace(":", "-")}`}>
             <video ref={videoRef} src={videoUrl || undefined} onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)} onLoadedMetadata={onMetadata}
+              onTimeUpdate={(e) => { const t = e.currentTarget.currentTime; setCurrentTime(t); if (end > start && t >= end) { e.currentTarget.pause(); e.currentTarget.currentTime = end; } }}
               onPlay={() => { cancelAnimationFrame(frameRef.current); previewFrame(); }}
               onPause={() => cancelAnimationFrame(frameRef.current)}
               onSeeked={drawFrame} playsInline controls={false} />
@@ -311,6 +315,12 @@ export default function ReelEditor() {
           <label className="reel-caption-toggle"><input type="checkbox" checked={captionBackground} onChange={(e) => setCaptionBackground(e.target.checked)} /> Add readable caption background</label>
           <div className="reel-field"><label htmlFor="reel-text-position">Text position</label><select id="reel-text-position" value={textPosition} onChange={(e) => setTextPosition(e.target.value)}><option value="bottom">Bottom</option><option value="center">Center</option><option value="top">Top</option></select></div>
           <div className="reel-field"><label htmlFor="reel-caption">On-screen text / caption</label><textarea id="reel-caption" rows="2" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Write a short hook or caption…" /></div>
+          {videoUrl && <div className="reel-caption-timing">
+            <strong>Caption timing</strong>
+            <label>Show from <b>{formatTime(captionStart)}</b><input type="range" min={start} max={Math.max(end, start + 0.1)} step="0.1" value={Math.min(captionStart, end || duration)} onChange={(e) => setCaptionStart(Number(e.target.value))} /></label>
+            <label>Hide after <b>{formatTime(captionEnd || end || duration)}</b><input type="range" min={captionStart} max={Math.max(end, captionStart + 0.1)} step="0.1" value={Math.min(captionEnd || end || duration, end || duration)} onChange={(e) => setCaptionEnd(Number(e.target.value))} /></label>
+            <button type="button" className="reel-secondary" onClick={() => { setCaptionStart(start); setCaptionEnd(end || duration); }}>Show for full trimmed clip</button>
+          </div>}
           <div className="reel-step"><span>04</span><div><h3>Add background music</h3><p>Use an audio file you have rights to use.</p></div></div>
           <label className="reel-audio-upload"><input type="file" accept="audio/*" onChange={(e) => loadMusic(e.target.files?.[0])} />♫ {musicUrl ? "Music added · change track" : "Add music track"}</label>
           {musicUrl && <><label className="reel-volume">Music volume <b>{musicVolume}%</b><input type="range" min="0" max="100" value={musicVolume} onChange={(e) => setMusicVolume(Number(e.target.value))} /></label><button type="button" className="reel-secondary" onClick={() => setMusicUrl("")}>Remove music track</button></>}
