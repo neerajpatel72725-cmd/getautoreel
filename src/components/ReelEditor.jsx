@@ -13,6 +13,7 @@ export default function ReelEditor() {
   const frameRef = useRef(0);
   const recorderRef = useRef(null);
   const chunksRef = useRef([]);
+  const exportCancelledRef = useRef(false);
   const audioContextRef = useRef(null);
   const musicElementRef = useRef(null);
   const [videoUrl, setVideoUrl] = useState("");
@@ -22,6 +23,7 @@ export default function ReelEditor() {
   const [end, setEnd] = useState(0);
   const [ratio, setRatio] = useState("9:16");
   const [caption, setCaption] = useState("");
+  const [captionEnabled, setCaptionEnabled] = useState(true);
   const [language, setLanguage] = useState("Hinglish");
   const [style, setStyle] = useState("Clean & cinematic");
   const [musicVolume, setMusicVolume] = useState(35);
@@ -156,7 +158,7 @@ export default function ReelEditor() {
     ctx.restore();
     const captionTime = video.currentTime || 0;
     const activeSubtitle = subtitles.find((item) => captionTime >= item.start && captionTime <= item.end);
-    const visibleCaption = activeSubtitle?.text || (captionTime >= captionStart && (!captionEnd || captionTime <= captionEnd) ? caption.trim() : "");
+    const visibleCaption = captionEnabled ? (activeSubtitle?.text || (captionTime >= captionStart && (!captionEnd || captionTime <= captionEnd) ? caption.trim() : "")) : "";
     if (visibleCaption) {
       const fontSize = Math.max(24, Math.round(w * (style === "Minimal" ? 0.045 : 0.055) * captionScale / 100));
       ctx.font = `${style === "Minimal" ? "600" : "800"} ${fontSize}px Arial, sans-serif`;
@@ -228,6 +230,7 @@ export default function ReelEditor() {
       setStatus("Video export is not supported in this browser. Try the latest Chrome.");
       return;
     }
+    exportCancelledRef.current = false;
     setBusy(true);
     setProgress(0);
     setStatus("Preparing your reel…");
@@ -319,9 +322,10 @@ export default function ReelEditor() {
       };
       recorder.onstop = () => {
         cleanupExport();
-        if (exportFailed || !exportCompleted) {
+        if (exportFailed || exportCancelledRef.current || !exportCompleted) {
           setBusy(false);
-          if (!exportFailed) setStatus("Export stopped before the selected clip finished. No file was downloaded; please retry.");
+          if (exportCancelledRef.current) setStatus("Export cancelled. No file was saved.");
+          else if (!exportFailed) setStatus("Export stopped before the selected clip finished. No file was downloaded; please retry.");
           setProgress(0);
           return;
         }
@@ -340,7 +344,7 @@ export default function ReelEditor() {
         });
         setProgress(100);
         setBusy(false);
-        setStatus("Your edited 9:16 reel is ready with the selected framing and visual look. Tap Download edited reel to save it.");
+        setStatus("Your edited reel is ready. Play the preview below and download only if you approve it.");
         video.pause();
       };
       recorder.start(1000);
@@ -448,7 +452,9 @@ export default function ReelEditor() {
           <div className="reel-field"><label htmlFor="reel-text-position">Text position</label><select id="reel-text-position" value={textPosition} onChange={(e) => setTextPosition(e.target.value)}><option value="bottom">Bottom</option><option value="center">Center</option><option value="top">Top</option></select></div>
           <div className="reel-field"><label htmlFor="reel-subtitles">Import timed subtitles (SRT / VTT)</label><input id="reel-subtitles" type="file" accept=".srt,.vtt" onChange={(e) => loadSubtitles(e.target.files?.[0])} /></div>
           {subtitleName && <div className="reel-file-meta"><span>CC</span><span title={subtitleName}>{subtitleName} · {subtitles.length} cues</span><button type="button" onClick={() => { setSubtitles([]); setSubtitleName(""); }}>Remove</button></div>}
-          <div className="reel-field"><label htmlFor="reel-caption">On-screen text / caption</label><textarea id="reel-caption" rows="2" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Write a short hook or caption…" /></div>
+          <label className="reel-caption-toggle"><input type="checkbox" checked={captionEnabled} onChange={(e) => setCaptionEnabled(e.target.checked)} /> Show caption on video</label>
+          <div className="reel-field"><label htmlFor="reel-caption">On-screen text / caption (burned into video)</label><textarea id="reel-caption" rows="3" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Type your caption here. It will appear on the video preview and exported reel…" /></div>
+          <p className="reel-caption-help">Caption preview appears on the video. During export it is rendered into every matching frame, not added as a separate text file.</p>
           {videoUrl && <div className="reel-caption-timing">
             <strong>Caption timing</strong>
             <label>Show from <b>{formatTime(captionStart)}</b><input type="range" min={start} max={Math.max(end, start + 0.1)} step="0.1" value={Math.min(captionStart, end || duration)} onChange={(e) => setCaptionStart(Number(e.target.value))} /></label>
@@ -459,8 +465,8 @@ export default function ReelEditor() {
           <label className="reel-audio-upload"><input type="file" accept="audio/*" onChange={(e) => loadMusic(e.target.files?.[0])} />♫ {musicUrl ? "Music added · change track" : "Add music track"}</label>
           {musicUrl && <><label className="reel-volume">Music volume <b>{musicVolume}%</b><input type="range" min="0" max="100" value={musicVolume} onChange={(e) => setMusicVolume(Number(e.target.value))} /></label><button type="button" className="reel-secondary" onClick={() => setMusicUrl("")}>Remove music track</button></>}
           <button className="reel-export" type="button" onClick={exportReel} disabled={!videoUrl || videoLoading || busy}>{busy ? `Exporting… ${progress}%` : "✦ Export Reel"}</button>
-          {busy && <progress className="reel-progress" max="100" value={progress} aria-label="Export progress" />}
-          {pendingDownload && <button type="button" className="reel-secondary" onClick={() => {
+          {busy && <><progress className="reel-progress" max="100" value={progress} aria-label="Export progress" /><button type="button" className="reel-secondary reel-cancel-export" onClick={() => { exportCancelledRef.current = true; const recorder = recorderRef.current; if (recorder && recorder.state !== "inactive") recorder.stop(); else { setBusy(false); setProgress(0); setStatus("Export cancelled."); } }}>■ Stop export</button></>}
+          {pendingDownload && <div className="reel-export-preview"><strong>Review your edited reel before saving</strong><video key={pendingDownload.url} src={pendingDownload.url} controls playsInline preload="metadata" /><button type="button" className="reel-secondary" onClick={() => {
             const link = document.createElement("a");
             link.href = pendingDownload.url;
             link.download = pendingDownload.filename;
@@ -470,7 +476,7 @@ export default function ReelEditor() {
             const url = pendingDownload.url;
             setPendingDownload(null);
             window.setTimeout(() => URL.revokeObjectURL(url), 60000);
-          }}>↓ Download edited reel</button>}
+          }}>↓ Download edited reel</button></div>}
           <p className="reel-export-format">Your exported file includes the selected crop, color filter, captions, speed and audio settings. Default preset: 9:16 vertical framing + subtle color enhancement. Choose Original dimensions and Original color if you do not want these changes. Re-encoding can slightly affect quality.</p>
           <p className="reel-status" role="status">{status || "Your files are processed locally in this browser."}</p>
           <p className="reel-note">Note: Language and style are setup preferences in this MVP. Automatic speech-to-caption generation and AI scene editing are planned for a later phase.</p>
