@@ -33,7 +33,7 @@ function frameDifference(a, b) {
 
 async function detectBeats(file, duration, onProgress) {
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextClass || !file) return [];
+  if (!AudioContextClass || !file || file.size > 80 * 1024 * 1024) return [];
   let audioContext;
   try {
     audioContext = new AudioContextClass();
@@ -76,10 +76,10 @@ export async function analyzeReelMedia({ video, file, onProgress = () => {} }) {
   const duration = video.duration;
   const originalTime = video.currentTime;
   const wasPlaying = !video.paused;
-  video.pause();
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d", { willReadFrequently: true });
   if (!context) throw new Error("This browser cannot create the analysis canvas.");
+  video.pause();
   const sampleStep = clamp(duration / 28, 0.8, 2.2);
   const samples = [];
   let previous = null;
