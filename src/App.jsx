@@ -37,6 +37,7 @@ export default function App() {
           <a href="#home">Home</a>
           <a href="#tools">AI Tools</a>
           <a href="#categories">Categories</a>
+          <a href="#reel-editor">Reels Editor</a>
           <a href="#creator">Creator Studio</a>
         </div>
       </nav>
