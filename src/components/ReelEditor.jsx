@@ -271,6 +271,15 @@ export default function ReelEditor() {
       recorder.ondataavailable = (event) => {
         if (event.data.size) chunksRef.current.push(event.data);
       };
+      recorder.onerror = () => {
+        setBusy(false);
+        setProgress(0);
+        setStatus("Export stopped because the browser could not encode this video. Try a shorter clip or close other apps and retry.");
+        music?.pause();
+        audioContext?.close().catch(() => {});
+        output.getTracks().forEach((track) => track.stop());
+        canvasStream.getTracks().forEach((track) => track.stop());
+      };
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "video/webm" });
         const url = URL.createObjectURL(blob);
@@ -290,10 +299,19 @@ export default function ReelEditor() {
         video.pause();
       };
       recorder.start(250);
-      await video.play();
+      try {
+        await video.play();
+      } catch {
+        if (recorder.state !== "inactive") recorder.stop();
+        throw new Error("Playback could not start for export. Tap Play once, then try Export again.");
+      }
+      const exportStartedAt = performance.now();
+      const expectedDurationMs = ((end - start) / Number(playbackSpeed)) * 1000;
       const render = () => {
         drawFrame(exportCanvas, Infinity);
-        setProgress(Math.min(99, Math.round(((video.currentTime - start) / (end - start)) * 100)));
+        const mediaProgress = Math.max(0, (video.currentTime - start) / (end - start));
+        const wallProgress = expectedDurationMs > 0 ? (performance.now() - exportStartedAt) / expectedDurationMs : 0;
+        setProgress(Math.min(99, Math.round(Math.max(mediaProgress, Math.min(wallProgress, mediaProgress + 0.08)) * 100)));
         if (video.currentTime >= end || video.ended) {
           video.pause();
           if (recorder.state !== "inactive") recorder.stop();
