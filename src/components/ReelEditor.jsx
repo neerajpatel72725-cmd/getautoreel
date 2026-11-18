@@ -252,7 +252,7 @@ export default function ReelEditor() {
     }
     if (busy) return;
     if (!window.MediaRecorder || !canvas.captureStream) {
-      setStatus("Video export is not supported in this browser. Try the latest Chrome.");
+      setStatus("Video export is not supported in this browser. Please use the latest version of Chrome.");
       return;
     }
     exportCancelledRef.current = false;
@@ -429,7 +429,7 @@ export default function ReelEditor() {
       <div className="reel-heading">
         <span className="reel-kicker">GENORA CREATOR TOOLS · BETA</span>
         <h2>Make a Reel</h2>
-        <p>Bas video choose karein, preview dekhein, phir export karein. Extra settings ki zaroorat nahi.</p>
+        <p>Choose a video, review the preview, then export. No setup required.</p>
       </div>
       <div className="reel-workspace">
         <div className="reel-preview-panel">
@@ -451,8 +451,8 @@ export default function ReelEditor() {
           {videoUrl && <label className="reel-timeline">Timeline · scrub preview<input type="range" min={start} max={Math.max(end, start + 0.1)} step="0.05" value={Math.min(videoRef.current?.currentTime || start, end || duration)} onChange={(e) => { if (videoRef.current) { videoRef.current.currentTime = Number(e.target.value); drawFrame(); } }} /></label>}
         </div>
         <div className="reel-controls-panel">
-          <div className="reel-simple-intro"><strong>Shuru karna bahut aasan hai</strong><ol><li>Apna video select karein.</li><li>Preview check karein.</li><li>Export karke video save karein.</li></ol><small>Abhi files isi device par process hoti hain.</small></div>
-          <div className="reel-step"><span>01</span><div><h3>Apna video select karein</h3><p>Gallery se ek video choose karein.</p></div></div>
+          <div className="reel-simple-intro"><strong>Get started in 3 easy steps</strong><ol><li>Choose your video.</li><li>Review the preview.</li><li>Export and save your video.</li></ol><small>Your files are processed on this device.</small></div>
+          <div className="reel-step"><span>01</span><div><h3>Choose your video</h3><p>Select a video from your device.</p></div></div>
           <label className={`reel-upload ${dragOver ? "is-dragging" : ""}`} onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={(e) => { e.preventDefault(); setDragOver(false); loadVideo(e.dataTransfer.files?.[0]); }}>
             <input type="file" accept="video/*" onChange={(e) => { loadVideo(e.target.files?.[0]); e.target.value = ""; }} />
             <span>＋</span><strong>{videoUrl ? "Choose another video" : "Choose video"}</strong><small>Files stay on your device</small>
@@ -460,7 +460,7 @@ export default function ReelEditor() {
           {videoName && <div className="reel-file-meta"><span>▣</span><span title={videoName}>{videoName} · {(videoSize / (1024 * 1024)).toFixed(1)} MB{videoDimensions ? ` · ${videoDimensions}` : ""}</span><button type="button" onClick={() => { setVideoUrl(""); setVideoName(""); setVideoSize(0); setVideoDimensions(""); setVideoLoading(false); setDuration(0); setStart(0); setEnd(0); setStatus(""); }}>Remove</button></div>}
           {videoLoading && <p className="reel-loading" role="status"><span className="reel-spinner" /> Preparing video preview… Large 4K files may take longer on mobile.</p>}
           <details className="reel-advanced"><summary>Optional settings · Video, captions, music</summary>
-          {videoUrl && <div className="reel-step"><span>02</span><div><h3>Trim video</h3><p>Sirf tab badlein jab clip ka hissa kaatna ho.</p></div></div>}
+          {videoUrl && <div className="reel-step"><span>02</span><div><h3>Trim video</h3><p>Adjust only if you want to trim the clip.</p></div></div>}
           {videoUrl && <div className="reel-trim">
             <label>Start <b>{formatTime(start)}</b><input type="range" min="0" max={Math.max(duration, 0.1)} step="0.1" value={start} onChange={(e) => { const v = Number(e.target.value); setStart(Math.min(v, Math.max(0, end - 0.2))); }} /></label>
             <label>End <b>{formatTime(end)}</b><input type="range" min="0" max={Math.max(duration, 0.1)} step="0.1" value={end} onChange={(e) => setEnd(Math.max(Number(e.target.value), start + 0.2))} /></label>
