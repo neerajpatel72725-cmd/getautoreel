@@ -20,7 +20,7 @@ export default function ReelEditor() {
   const [duration, setDuration] = useState(0);
   const [start, setStart] = useState(0);
   const [end, setEnd] = useState(0);
-  const [ratio, setRatio] = useState("original");
+  const [ratio, setRatio] = useState("9:16");
   const [caption, setCaption] = useState("");
   const [language, setLanguage] = useState("Hinglish");
   const [style, setStyle] = useState("Clean & cinematic");
@@ -28,7 +28,7 @@ export default function ReelEditor() {
   const [fitMode, setFitMode] = useState("fill");
   const [playbackSpeed, setPlaybackSpeed] = useState("1");
   const [videoVolume, setVideoVolume] = useState(100);
-  const [visualFilter, setVisualFilter] = useState("none");
+  const [visualFilter, setVisualFilter] = useState("contrast(1.08) saturate(1.12) brightness(1.02)");
   const [exportQuality, setExportQuality] = useState("original");
   const [currentTime, setCurrentTime] = useState(0);
   const [captionBackground, setCaptionBackground] = useState(true);
@@ -340,7 +340,7 @@ export default function ReelEditor() {
         });
         setProgress(100);
         setBusy(false);
-        setStatus("Your edited reel is ready. Tap Download edited reel when you want to save it.");
+        setStatus("Your edited 9:16 reel is ready with the selected framing and visual look. Tap Download edited reel to save it.");
         video.pause();
       };
       recorder.start(1000);
@@ -400,7 +400,7 @@ export default function ReelEditor() {
       <div className="reel-heading">
         <span className="reel-kicker">GENORA CREATOR TOOLS · BETA</span>
         <h2>Reels Editor</h2>
-        <p>Turn your raw clips into a vertical, social-ready video — right in your browser.</p>
+        <p>Upload a clip, then export a vertical 9:16 reel with automatic color enhancement. All edits are rendered into the exported video.</p>
       </div>
       <div className="reel-workspace">
         <div className="reel-preview-panel">
@@ -435,9 +435,9 @@ export default function ReelEditor() {
             <label>End <b>{formatTime(end)}</b><input type="range" min="0" max={Math.max(duration, 0.1)} step="0.1" value={end} onChange={(e) => setEnd(Math.max(Number(e.target.value), start + 0.2))} /></label>
           </div>}
           <div className="reel-step"><span>03</span><div><h3>Make it yours</h3><p>Choose format, language and your editing vibe.</p></div></div>
-          <div className="reel-field"><label htmlFor="reel-ratio">Video format</label><select id="reel-ratio" value={ratio} onChange={(e) => setRatio(e.target.value)}><option value="original">Original · keep source dimensions</option><option value="9:16">9:16 · Reels</option><option value="1:1">1:1 · Square</option><option value="16:9">16:9 · Landscape</option></select></div>
+          <div className="reel-field"><label htmlFor="reel-ratio">Video format</label><select id="reel-ratio" value={ratio} onChange={(e) => setRatio(e.target.value)}><option value="9:16">9:16 · Reels (recommended)</option><option value="original">Original · keep source dimensions</option><option value="1:1">1:1 · Square</option><option value="16:9">16:9 · Landscape</option></select></div>
           <div className="reel-field"><label htmlFor="reel-speed">Playback speed</label><select id="reel-speed" value={playbackSpeed} onChange={(e) => setPlaybackSpeed(e.target.value)}><option value="0.5">0.5× Slow motion</option><option value="0.75">0.75×</option><option value="1">1× Normal</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2× Fast</option></select></div>
-          <div className="reel-field"><label htmlFor="reel-filter">Visual look</label><select id="reel-filter" value={visualFilter} onChange={(e) => setVisualFilter(e.target.value)}><option value="none">Original</option><option value="contrast(1.18) saturate(1.2)">Vibrant</option><option value="grayscale(1)">Black & white</option><option value="sepia(.45) contrast(1.08)">Warm vintage</option><option value="brightness(1.12) saturate(.85)">Bright soft</option></select></div>
+          <div className="reel-field"><label htmlFor="reel-filter">Visual look</label><select id="reel-filter" value={visualFilter} onChange={(e) => setVisualFilter(e.target.value)}><option value="contrast(1.08) saturate(1.12) brightness(1.02)">Auto Reel Enhance · recommended</option><option value="none">Original · no color changes</option><option value="contrast(1.18) saturate(1.2)">Vibrant</option><option value="grayscale(1)">Black & white</option><option value="sepia(.45) contrast(1.08)">Warm vintage</option><option value="brightness(1.12) saturate(.85)">Bright soft</option></select></div>
           <div className="reel-field"><label htmlFor="reel-original-volume">Original video volume · {videoVolume}%</label><input id="reel-original-volume" type="range" min="0" max="100" value={videoVolume} onChange={(e) => setVideoVolume(Number(e.target.value))} /></div>
           <div className="reel-field"><label htmlFor="reel-quality">Export quality</label><select id="reel-quality" value={exportQuality} onChange={(e) => setExportQuality(e.target.value)}><option value="original">Original quality · Auto bitrate</option><option value="12">High · 12 Mbps</option><option value="20">Very high · 20 Mbps</option><option value="35">Maximum · 35 Mbps</option></select></div>
           <div className="reel-field"><label htmlFor="reel-fit">Video framing</label><select id="reel-fit" value={fitMode} onChange={(e) => setFitMode(e.target.value)}><option value="fill">Fill frame · crop edges</option><option value="fit">Fit whole video · add bars</option></select></div>
@@ -471,7 +471,7 @@ export default function ReelEditor() {
             setPendingDownload(null);
             window.setTimeout(() => URL.revokeObjectURL(url), 60000);
           }}>↓ Download edited reel</button>}
-          <p className="reel-export-format">Original mode keeps the source video dimensions and uses a high automatic export bitrate. Re-encoding can still cause slight quality changes; choosing 9:16, 1:1 or 16:9 crops/resizes the frame.</p>
+          <p className="reel-export-format">Your exported file includes the selected crop, color filter, captions, speed and audio settings. Default preset: 9:16 vertical framing + subtle color enhancement. Choose Original dimensions and Original color if you do not want these changes. Re-encoding can slightly affect quality.</p>
           <p className="reel-status" role="status">{status || "Your files are processed locally in this browser."}</p>
           <p className="reel-note">Note: Language and style are setup preferences in this MVP. Automatic speech-to-caption generation and AI scene editing are planned for a later phase.</p>
         </div>
