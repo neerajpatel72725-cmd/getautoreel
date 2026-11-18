@@ -25,6 +25,10 @@ export default function ReelEditor() {
   const [language, setLanguage] = useState("Hinglish");
   const [style, setStyle] = useState("Clean & cinematic");
   const [musicVolume, setMusicVolume] = useState(35);
+  const [fitMode, setFitMode] = useState("fill");
+  const [textPosition, setTextPosition] = useState("bottom");
+  const [dragOver, setDragOver] = useState(false);
+  const [videoName, setVideoName] = useState("");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -43,6 +47,7 @@ export default function ReelEditor() {
       return;
     }
     setVideoUrl(URL.createObjectURL(file));
+    setVideoName(file.name);
     setStatus("");
     setStart(0);
     setEnd(0);
@@ -73,15 +78,15 @@ export default function ReelEditor() {
       canvas.height = h;
     }
     const ctx = canvas.getContext("2d");
-    const scale = Math.max(w / video.videoWidth, h / video.videoHeight);
+    const scale = fitMode === "fit" ? Math.min(w / video.videoWidth, h / video.videoHeight) : Math.max(w / video.videoWidth, h / video.videoHeight);
     const dw = video.videoWidth * scale;
     const dh = video.videoHeight * scale;
     ctx.fillStyle = "#080914";
     ctx.fillRect(0, 0, w, h);
     ctx.drawImage(video, (w - dw) / 2, (h - dh) / 2, dw, dh);
     if (caption.trim()) {
-      const fontSize = Math.max(30, Math.round(w * 0.055));
-      ctx.font = `800 ${fontSize}px Arial, sans-serif`;
+      const fontSize = Math.max(30, Math.round(w * (style === "Minimal" ? 0.045 : 0.055)));
+      ctx.font = `${style === "Minimal" ? "600" : "800"} ${fontSize}px Arial, sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       const words = caption.trim().split(/\s+/);
@@ -96,10 +101,11 @@ export default function ReelEditor() {
       });
       if (line) lines.push(line);
       const lineHeight = fontSize * 1.22;
-      const y = h * 0.78 - ((lines.length - 1) * lineHeight) / 2;
-      ctx.lineWidth = Math.max(4, fontSize * 0.16);
-      ctx.strokeStyle = "rgba(0,0,0,.78)";
-      ctx.fillStyle = "#fff";
+      const anchor = textPosition === "top" ? 0.18 : textPosition === "center" ? 0.5 : 0.78;
+      const y = h * anchor - ((lines.length - 1) * lineHeight) / 2;
+      ctx.lineWidth = style === "Minimal" ? 2 : Math.max(4, fontSize * 0.16);
+      ctx.strokeStyle = "rgba(0,0,0,.88)";
+      ctx.fillStyle = style === "Bold creator" ? "#ffe66d" : "#fff";
       lines.forEach((text, index) => {
         const yy = y + index * lineHeight;
         ctx.strokeText(text, w / 2, yy, w * 0.88);
@@ -111,7 +117,7 @@ export default function ReelEditor() {
   useEffect(() => {
     if (videoRef.current && !videoRef.current.paused) return;
     drawFrame();
-  }, [caption, ratio, videoUrl]);
+  }, [caption, ratio, videoUrl, fitMode, style, textPosition]);
 
   const previewFrame = () => {
     drawFrame();
@@ -247,13 +253,15 @@ export default function ReelEditor() {
             <span>{formatTime(start)} — {formatTime(end || duration)}</span>
             <span>{ratio}</span>
           </div>
+          {videoUrl && <label className="reel-timeline">Timeline · scrub preview<input type="range" min={start} max={Math.max(end, start + 0.1)} step="0.05" value={Math.min(videoRef.current?.currentTime || start, end || duration)} onChange={(e) => { if (videoRef.current) { videoRef.current.currentTime = Number(e.target.value); drawFrame(); } }} /></label>}
         </div>
         <div className="reel-controls-panel">
           <div className="reel-step"><span>01</span><div><h3>Upload your video</h3><p>MP4, WebM or MOV supported by your browser.</p></div></div>
-          <label className="reel-upload">
+          <label className={`reel-upload ${dragOver ? "is-dragging" : ""}`} onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={(e) => { e.preventDefault(); setDragOver(false); loadVideo(e.dataTransfer.files?.[0]); }}>
             <input type="file" accept="video/*" onChange={(e) => loadVideo(e.target.files?.[0])} />
             <span>＋</span><strong>{videoUrl ? "Choose another video" : "Choose video"}</strong><small>Files stay on your device</small>
           </label>
+          {videoName && <div className="reel-file-meta"><span>▣</span><span title={videoName}>{videoName}</span><button type="button" onClick={() => { setVideoUrl(""); setVideoName(""); setDuration(0); setStart(0); setEnd(0); setStatus(""); }}>Remove</button></div>}
           {videoUrl && <div className="reel-step"><span>02</span><div><h3>Trim your clip</h3><p>Set the start and end points.</p></div></div>}
           {videoUrl && <div className="reel-trim">
             <label>Start <b>{formatTime(start)}</b><input type="range" min="0" max={Math.max(duration, 0.1)} step="0.1" value={start} onChange={(e) => { const v = Number(e.target.value); setStart(Math.min(v, Math.max(0, end - 0.2))); }} /></label>
@@ -261,8 +269,10 @@ export default function ReelEditor() {
           </div>}
           <div className="reel-step"><span>03</span><div><h3>Make it yours</h3><p>Choose format, language and your editing vibe.</p></div></div>
           <div className="reel-field"><label htmlFor="reel-ratio">Video format</label><select id="reel-ratio" value={ratio} onChange={(e) => setRatio(e.target.value)}><option>9:16</option><option>1:1</option><option>16:9</option></select></div>
-          <div className="reel-field"><label htmlFor="reel-language">Caption language</label><select id="reel-language" value={language} onChange={(e) => setLanguage(e.target.value)}><option>Hindi</option><option>English</option><option>Hinglish</option></select></div>
-          <div className="reel-field"><label htmlFor="reel-style">Editing style</label><select id="reel-style" value={style} onChange={(e) => setStyle(e.target.value)}><option>Clean & cinematic</option><option>Bold creator</option><option>Minimal</option><option>Vlog</option></select></div>
+          <div className="reel-field"><label htmlFor="reel-fit">Video framing</label><select id="reel-fit" value={fitMode} onChange={(e) => setFitMode(e.target.value)}><option value="fill">Fill frame · crop edges</option><option value="fit">Fit whole video · add bars</option></select></div>
+          <div className="reel-field"><label htmlFor="reel-language">Caption language · AI captions coming soon</label><select id="reel-language" value={language} onChange={(e) => setLanguage(e.target.value)}><option>Hindi</option><option>English</option><option>Hinglish</option></select></div>
+          <div className="reel-field"><label htmlFor="reel-style">Text style</label><select id="reel-style" value={style} onChange={(e) => setStyle(e.target.value)}><option>Clean & cinematic</option><option>Bold creator</option><option>Minimal</option><option>Vlog</option></select></div>
+          <div className="reel-field"><label htmlFor="reel-text-position">Text position</label><select id="reel-text-position" value={textPosition} onChange={(e) => setTextPosition(e.target.value)}><option value="bottom">Bottom</option><option value="center">Center</option><option value="top">Top</option></select></div>
           <div className="reel-field"><label htmlFor="reel-caption">On-screen text / caption</label><textarea id="reel-caption" rows="2" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Write a short hook or caption…" /></div>
           <div className="reel-step"><span>04</span><div><h3>Add background music</h3><p>Use an audio file you have rights to use.</p></div></div>
           <label className="reel-audio-upload"><input type="file" accept="audio/*" onChange={(e) => loadMusic(e.target.files?.[0])} />♫ {musicUrl ? "Music added · change track" : "Add music track"}</label>
