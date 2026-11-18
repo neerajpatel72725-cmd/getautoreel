@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./ReelEditor.css";
+import { analyzeReelMedia } from "../lib/reelAnalysis";
 
 const formatTime = (value) => {
   if (!Number.isFinite(value)) return "00:00";
@@ -9,6 +10,7 @@ const formatTime = (value) => {
 
 export default function ReelEditor() {
   const videoRef = useRef(null);
+  const videoFileRef = useRef(null);
   const canvasRef = useRef(null);
   const frameRef = useRef(0);
   const recorderRef = useRef(null);
@@ -49,6 +51,9 @@ export default function ReelEditor() {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState(0);
   const [pendingDownload, setPendingDownload] = useState(null);
+  const [analysisResult, setAnalysisResult] = useState(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
 
   useEffect(() => () => {
     if (videoUrl) URL.revokeObjectURL(videoUrl);
@@ -78,6 +83,8 @@ export default function ReelEditor() {
       return;
     }
     const nextUrl = URL.createObjectURL(file);
+    videoFileRef.current = file;
+    setAnalysisResult(null);
     setVideoLoading(true);
     setVideoUrl(nextUrl);
     setVideoName(file.name);
@@ -120,6 +127,24 @@ export default function ReelEditor() {
     setVideoLoading(false);
     setStatus("Video ready. Your file stays on this device; no upload is required.");
     drawFrame();
+  };
+
+  const runAutoAnalysis = async () => {
+    const video = videoRef.current;
+    if (!video || videoLoading || analyzing || !videoUrl) return;
+    setAnalyzing(true);
+    setAnalysisProgress(0);
+    setAnalysisResult(null);
+    setStatus("Analyzing video scenes and audio rhythm on this device…");
+    try {
+      const result = await analyzeReelMedia({ video, file: videoFileRef.current, onProgress: setAnalysisProgress });
+      setAnalysisResult(result);
+      setStatus(`Analysis complete: ${result.sceneChanges} scene changes and ${result.beatMarkers.length} audio rhythm peaks detected.`);
+    } catch (error) {
+      setStatus(error?.message || "Automatic analysis failed. Try a shorter MP4 video.");
+    } finally {
+      setAnalyzing(false);
+    }
   };
 
   const onVideoError = () => {
@@ -464,6 +489,9 @@ export default function ReelEditor() {
           <div className="reel-step"><span>04</span><div><h3>Add background music</h3><p>Use an audio file you have rights to use.</p></div></div>
           <label className="reel-audio-upload"><input type="file" accept="audio/*" onChange={(e) => loadMusic(e.target.files?.[0])} />♫ {musicUrl ? "Music added · change track" : "Add music track"}</label>
           {musicUrl && <><label className="reel-volume">Music volume <b>{musicVolume}%</b><input type="range" min="0" max="100" value={musicVolume} onChange={(e) => setMusicVolume(Number(e.target.value))} /></label><button type="button" className="reel-secondary" onClick={() => setMusicUrl("")}>Remove music track</button></>}
+          <button className="reel-export reel-analyze" type="button" onClick={runAutoAnalysis} disabled={!videoUrl || videoLoading || analyzing || busy}>{analyzing ? `Analyzing… ${analysisProgress}%` : "✦ Analyze video & audio automatically"}</button>
+          {analyzing && <progress className="reel-progress" max="100" value={analysisProgress} aria-label="Analysis progress" />}
+          {analysisResult && <div className="reel-analysis-card"><strong>Automatic analysis report</strong><span>{analysisResult.sceneChanges} visual scene changes</span><span>{analysisResult.beatMarkers.length} audio rhythm peaks</span><span>{analysisResult.segments.length} timeline sections mapped</span><small>{analysisResult.analysis}. This first-pass analysis detects visual changes and audio energy; speech-to-text captions and semantic AI editing are not yet enabled.</small></div>}
           <button className="reel-export" type="button" onClick={exportReel} disabled={!videoUrl || videoLoading || busy}>{busy ? `Exporting… ${progress}%` : "✦ Export Reel"}</button>
           {busy && <><progress className="reel-progress" max="100" value={progress} aria-label="Export progress" /><button type="button" className="reel-secondary reel-cancel-export" onClick={() => { exportCancelledRef.current = true; const recorder = recorderRef.current; if (recorder && recorder.state !== "inactive") recorder.stop(); else { setBusy(false); setProgress(0); setStatus("Export cancelled."); } }}>■ Stop export</button></>}
           {pendingDownload && <div className="reel-export-preview"><strong>Review your edited reel before saving</strong><video key={pendingDownload.url} src={pendingDownload.url} controls playsInline preload="metadata" /><button type="button" className="reel-secondary" onClick={() => {
