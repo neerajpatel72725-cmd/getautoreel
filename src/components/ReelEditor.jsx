@@ -298,6 +298,7 @@ export default function ReelEditor() {
       let renderFrameId = null;
       let watchdogTimer = null;
       let exportFailed = false;
+      let exportCompleted = false;
       const cleanupExport = () => {
         if (renderFrameId !== null) cancelAnimationFrame(renderFrameId);
         if (watchdogTimer !== null) window.clearInterval(watchdogTimer);
@@ -318,8 +319,9 @@ export default function ReelEditor() {
       };
       recorder.onstop = () => {
         cleanupExport();
-        if (exportFailed) {
+        if (exportFailed || !exportCompleted) {
           setBusy(false);
+          if (!exportFailed) setStatus("Export stopped before the selected clip finished. No file was downloaded; please retry.");
           setProgress(0);
           return;
         }
@@ -345,6 +347,7 @@ export default function ReelEditor() {
       try {
         await video.play();
       } catch {
+        exportFailed = true;
         if (recorder.state !== "inactive") recorder.stop();
         throw new Error("Playback could not start for export. Tap Play once, then try Export again.");
       }
@@ -378,6 +381,7 @@ export default function ReelEditor() {
         const mediaProgress = Math.max(0, (video.currentTime - start) / (end - start));
         setProgress(Math.min(99, Math.round(mediaProgress * 100)));
         if (video.currentTime >= end - 0.03 || video.ended) {
+          exportCompleted = true;
           if (recorder.state !== "inactive") recorder.stop();
         }
       }, 500);
