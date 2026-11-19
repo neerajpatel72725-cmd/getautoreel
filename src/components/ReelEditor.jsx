@@ -17,6 +17,7 @@ export default function ReelEditor() {
   const chunksRef = useRef([]);
   const exportCancelledRef = useRef(false);
   const audioContextRef = useRef(null);
+  const videoAudioSourceRef = useRef(null);
   const musicElementRef = useRef(null);
   const [videoUrl, setVideoUrl] = useState("");
   const [musicUrl, setMusicUrl] = useState("");
@@ -277,29 +278,32 @@ export default function ReelEditor() {
 
       const canvasStream = exportCanvas.captureStream(30);
       const output = new MediaStream([...canvasStream.getVideoTracks()]);
-      let audioContext;
+      let audioContext = audioContextRef.current;
       let music;
-      if (musicUrl) {
-        audioContext = new AudioContext();
+      const sourceStream = video.captureStream ? video.captureStream() : video.mozCaptureStream?.();
+      sourceStream?.getVideoTracks().forEach((track) => output.addTrack(track));
+      if (videoVolume > 0 || musicUrl) {
+        audioContext ||= new AudioContext();
         audioContextRef.current = audioContext;
-        const sourceStream = video.captureStream ? video.captureStream() : video.mozCaptureStream?.();
-        sourceStream?.getAudioTracks().forEach((track) => output.addTrack(track));
-        music = new Audio(musicUrl);
-        musicElementRef.current = music;
-        music.loop = true;
-        music.volume = 1;
-        const musicSource = audioContext.createMediaElementSource(music);
-        const gain = audioContext.createGain();
-        gain.gain.value = musicVolume / 100;
-        musicSource.connect(gain);
-        const musicDestination = audioContext.createMediaStreamDestination();
-        gain.connect(musicDestination);
-        musicDestination.stream.getAudioTracks().forEach((track) => output.addTrack(track));
+        // Route source audio through Web Audio so the original-volume control works in the exported file.
+        if (!videoAudioSourceRef.current) videoAudioSourceRef.current = audioContext.createMediaElementSource(video);
+        const sourceGain = audioContext.createGain();
+        sourceGain.gain.value = videoVolume / 100;
+        videoAudioSourceRef.current.connect(sourceGain);
+        const audioDestination = audioContext.createMediaStreamDestination();
+        sourceGain.connect(audioDestination);
+        if (musicUrl) {
+          music = new Audio(musicUrl);
+          musicElementRef.current = music;
+          music.loop = true;
+          const musicSource = audioContext.createMediaElementSource(music);
+          const musicGain = audioContext.createGain();
+          musicGain.gain.value = musicVolume / 100;
+          musicSource.connect(musicGain).connect(audioDestination);
+        }
+        audioDestination.stream.getAudioTracks().forEach((track) => output.addTrack(track));
         await audioContext.resume();
-        await music.play();
-      } else {
-        const sourceStream = video.captureStream ? video.captureStream() : video.mozCaptureStream?.();
-        sourceStream?.getAudioTracks().forEach((track) => output.addTrack(track));
+        if (music) await music.play();
       }
 
       const mimeCandidates = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
@@ -333,7 +337,6 @@ export default function ReelEditor() {
         renderFrameId = null;
         watchdogTimer = null;
         music?.pause();
-        audioContext?.close().catch(() => {});
         output.getTracks().forEach((track) => track.stop());
         canvasStream.getTracks().forEach((track) => track.stop());
         video.pause();
