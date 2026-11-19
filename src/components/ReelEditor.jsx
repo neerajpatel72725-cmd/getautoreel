@@ -18,6 +18,7 @@ export default function ReelEditor() {
   const exportCancelledRef = useRef(false);
   const audioContextRef = useRef(null);
   const videoAudioSourceRef = useRef(null);
+  const videoAudioGainRef = useRef(null);
   const musicElementRef = useRef(null);
   const [videoUrl, setVideoUrl] = useState("");
   const [musicUrl, setMusicUrl] = useState("");
@@ -287,11 +288,11 @@ export default function ReelEditor() {
         audioContextRef.current = audioContext;
         // Route source audio through Web Audio so the original-volume control works in the exported file.
         if (!videoAudioSourceRef.current) videoAudioSourceRef.current = audioContext.createMediaElementSource(video);
-        const sourceGain = audioContext.createGain();
-        sourceGain.gain.value = videoVolume / 100;
-        videoAudioSourceRef.current.connect(sourceGain);
+        videoAudioGainRef.current ||= audioContext.createGain();
+        videoAudioGainRef.current.gain.value = videoVolume / 100;
         const audioDestination = audioContext.createMediaStreamDestination();
-        sourceGain.connect(audioDestination);
+        videoAudioSourceRef.current.connect(videoAudioGainRef.current);
+        videoAudioGainRef.current.connect(audioDestination);
         if (musicUrl) {
           music = new Audio(musicUrl);
           musicElementRef.current = music;
@@ -337,6 +338,7 @@ export default function ReelEditor() {
         renderFrameId = null;
         watchdogTimer = null;
         music?.pause();
+        videoAudioGainRef.current?.disconnect();
         output.getTracks().forEach((track) => track.stop());
         canvasStream.getTracks().forEach((track) => track.stop());
         video.pause();
