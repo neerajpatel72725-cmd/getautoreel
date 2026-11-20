@@ -291,12 +291,13 @@ export default function ReelEditor() {
       const exportCanvas = document.createElement("canvas");
       drawFrame(exportCanvas, Infinity);
 
+      // Export only the canvas-rendered video track. Adding the source video track
+      // here created a second video track with the unedited source frames, which
+      // some players selected instead of the edited canvas (ratio/captions/filters).
       const canvasStream = exportCanvas.captureStream(30);
       const output = new MediaStream([...canvasStream.getVideoTracks()]);
       let audioContext = audioContextRef.current;
       let music;
-      const sourceStream = video.captureStream ? video.captureStream() : video.mozCaptureStream?.();
-      sourceStream?.getVideoTracks().forEach((track) => output.addTrack(track));
       if (videoVolume > 0 || musicUrl) {
         audioContext ||= new AudioContext();
         audioContextRef.current = audioContext;
@@ -325,8 +326,8 @@ export default function ReelEditor() {
       const mimeType = typeof MediaRecorder.isTypeSupported === "function"
         ? mimeCandidates.find((type) => MediaRecorder.isTypeSupported(type))
         : undefined;
-      const pixels = video.videoWidth * video.videoHeight;
-      const automaticBitrate = pixels >= 3840 * 2160 ? 50000000 : pixels >= 2560 * 1440 ? 30000000 : pixels >= 1920 * 1080 ? 16000000 : 10000000;
+      const exportPixels = exportCanvas.width * exportCanvas.height;
+      const automaticBitrate = exportPixels >= 3840 * 2160 ? 50000000 : exportPixels >= 2560 * 1440 ? 30000000 : exportPixels >= 1920 * 1080 ? 16000000 : 10000000;
       const selectedBitrate = exportQuality === "original" ? automaticBitrate : Number(exportQuality) * 1000000;
       const recorderOptions = { ...(mimeType ? { mimeType } : {}), videoBitsPerSecond: selectedBitrate, audioBitsPerSecond: 256000 };
       let recorder;
