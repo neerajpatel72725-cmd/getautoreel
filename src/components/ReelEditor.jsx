@@ -140,8 +140,22 @@ export default function ReelEditor() {
     setStatus("Analyzing video scenes and audio rhythm on this device…");
     try {
       const result = await analyzeReelMedia({ video, file: videoFileRef.current, onProgress: setAnalysisProgress });
+      // Suggest a short, usable section from the analyzed timeline. This is a
+      // transparent heuristic—not semantic AI highlight detection.
+      const targetLength = Math.min(20, Math.max(8, duration || 12));
+      const eligible = result.segments.filter((segment) => segment.end - segment.start >= 4);
+      const chosen = eligible.reduce((best, segment) => {
+        const length = segment.end - segment.start;
+        const score = Math.abs(length - targetLength);
+        return !best || score < best.score ? { segment, score } : best;
+      }, null)?.segment;
+      const suggestedStart = chosen ? chosen.start : Math.max(0, Math.min(duration - targetLength, duration * 0.15));
+      const suggestedEnd = chosen ? Math.min(chosen.end, suggestedStart + targetLength) : Math.min(duration, suggestedStart + targetLength);
+      result.suggestedStart = Number(suggestedStart.toFixed(2));
+      result.suggestedEnd = Number(suggestedEnd.toFixed(2));
+      result.suggestionMethod = chosen ? "analysis segment nearest the target length" : "centered fallback window";
       setAnalysisResult(result);
-      setStatus(`Analysis complete: ${result.sceneChanges} scene changes and ${result.beatMarkers.length} audio rhythm peaks detected.`);
+      setStatus(`Analysis complete: ${result.sceneChanges} scene changes and ${result.beatMarkers.length} audio rhythm peaks detected. A suggested trim is ready to review.`);
     } catch (error) {
       setStatus(error?.message || "Automatic analysis failed. Try a shorter MP4 video.");
     } finally {
@@ -503,7 +517,7 @@ export default function ReelEditor() {
           </details>
           <button className="reel-export reel-analyze" type="button" onClick={runAutoAnalysis} disabled={!videoUrl || videoLoading || analyzing || busy}>{analyzing ? `Analyzing… ${analysisProgress}%` : "Optional: Check video & audio"}</button>
           {analyzing && <progress className="reel-progress" max="100" value={analysisProgress} aria-label="Analysis progress" />}
-          {analysisResult && <div className="reel-analysis-card"><strong>Automatic analysis report</strong><span>{analysisResult.sceneChanges} visual scene changes</span><span>{analysisResult.beatMarkers.length} audio rhythm peaks</span><span>{analysisResult.segments.length} timeline sections mapped</span><small>{analysisResult.analysis}. This first-pass analysis detects visual changes and audio energy; speech-to-text captions and semantic AI editing are not yet enabled.</small></div>}
+          {analysisResult && <div className="reel-analysis-card"><strong>Automatic analysis report</strong><span>{analysisResult.sceneChanges} visual scene changes</span><span>{analysisResult.beatMarkers.length} audio rhythm peaks</span><span>{analysisResult.segments.length} timeline sections mapped</span><span>Suggested trim: {formatTime(analysisResult.suggestedStart)} – {formatTime(analysisResult.suggestedEnd)}</span><button type="button" className="reel-secondary" onClick={() => { setStart(analysisResult.suggestedStart); setEnd(analysisResult.suggestedEnd); setCaptionStart(analysisResult.suggestedStart); setCaptionEnd(analysisResult.suggestedEnd); if (videoRef.current) videoRef.current.currentTime = analysisResult.suggestedStart; setStatus("Suggested trim applied. Preview it before exporting."); }}>Apply suggested trim</button><small>Suggestion method: {analysisResult.suggestionMethod}. This is a timeline heuristic, not semantic AI highlight detection. Visual changes and audio energy are analyzed; speech-to-text captions and semantic AI editing are not enabled.</small></div>}
           <button className="reel-export" type="button" onClick={exportReel} disabled={!videoUrl || videoLoading || busy}>{busy ? `Exporting… ${progress}%` : "2. Export video"}</button>
           {busy && <><progress className="reel-progress" max="100" value={progress} aria-label="Export progress" /><button type="button" className="reel-secondary reel-cancel-export" onClick={() => { exportCancelledRef.current = true; const recorder = recorderRef.current; if (recorder && recorder.state !== "inactive") recorder.stop(); else { setBusy(false); setProgress(0); setStatus("Export cancelled."); } }}>■ Stop export</button></>}
           {pendingDownload && <div className="reel-export-preview"><strong>Review your edited reel before saving</strong><video key={pendingDownload.url} src={pendingDownload.url} controls playsInline preload="metadata" /><button type="button" className="reel-secondary" onClick={() => {
