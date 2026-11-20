@@ -173,7 +173,13 @@ export default function ReelEditor() {
     const video = videoRef.current;
     const canvas = targetCanvas;
     if (!video || !canvas || !video.videoWidth) return;
-    let [w, h] = ratio === "original" ? [video.videoWidth, video.videoHeight] : ratio === "9:16" ? [720, 1280] : ratio === "1:1" ? [1080, 1080] : [1280, 720];
+    // Export at practical social-video resolutions; preview is scaled separately.
+    // Source mode preserves the exact source dimensions and aspect ratio.
+    let [w, h] = ratio === "original" ? [video.videoWidth, video.videoHeight]
+      : ratio === "9:16" ? [1080, 1920]
+      : ratio === "4:5" ? [1080, 1350]
+      : ratio === "1:1" ? [1080, 1080]
+      : [1920, 1080];
     if (Number.isFinite(maxDimension) && Math.max(w, h) > maxDimension) {
       const previewScale = maxDimension / Math.max(w, h);
       w = Math.max(1, Math.round(w * previewScale));
@@ -490,7 +496,7 @@ export default function ReelEditor() {
             <label>End <b>{formatTime(end)}</b><input type="range" min="0" max={Math.max(duration, 0.1)} step="0.1" value={end} onChange={(e) => setEnd(Math.max(Number(e.target.value), start + 0.2))} /></label>
           </div>}
           <div className="reel-step"><span>03</span><div><h3>Make it yours</h3><p>Choose format, language and your editing vibe.</p></div></div>
-          <div className="reel-field"><label htmlFor="reel-ratio">Video format</label><select id="reel-ratio" value={ratio} onChange={(e) => setRatio(e.target.value)}><option value="9:16">9:16 · Reels (recommended)</option><option value="original">Original · keep source dimensions</option><option value="1:1">1:1 · Square</option><option value="16:9">16:9 · Landscape</option></select></div>
+          <div className="reel-field"><label htmlFor="reel-ratio">Video format</label><select id="reel-ratio" value={ratio} onChange={(e) => setRatio(e.target.value)}><option value="9:16">9:16 · Reels / Shorts · 1080p</option><option value="original">Original · preserve exact source ratio & dimensions</option><option value="4:5">4:5 · Instagram portrait</option><option value="1:1">1:1 · Square</option><option value="16:9">16:9 · Landscape · 1080p</option></select></div>
           <div className="reel-field"><label htmlFor="reel-speed">Playback speed</label><select id="reel-speed" value={playbackSpeed} onChange={(e) => setPlaybackSpeed(e.target.value)}><option value="0.5">0.5× Slow motion</option><option value="0.75">0.75×</option><option value="1">1× Normal</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2× Fast</option></select></div>
           <div className="reel-field"><label htmlFor="reel-filter">Visual look</label><select id="reel-filter" value={visualFilter} onChange={(e) => setVisualFilter(e.target.value)}><option value="contrast(1.08) saturate(1.12) brightness(1.02)">Auto Reel Enhance · recommended</option><option value="none">Original · no color changes</option><option value="contrast(1.18) saturate(1.2)">Vibrant</option><option value="grayscale(1)">Black & white</option><option value="sepia(.45) contrast(1.08)">Warm vintage</option><option value="brightness(1.12) saturate(.85)">Bright soft</option></select></div>
           <div className="reel-field"><label htmlFor="reel-original-volume">Original video volume · {videoVolume}%</label><input id="reel-original-volume" type="range" min="0" max="100" value={videoVolume} onChange={(e) => setVideoVolume(Number(e.target.value))} /></div>
