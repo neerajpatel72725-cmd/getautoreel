@@ -101,8 +101,26 @@ export default function ReelEditor() {
     if (!/\.(srt|vtt)$/i.test(file.name)) { setStatus("Choose an SRT or WebVTT subtitle file."); return; }
     const source = (await file.text()).replace(/^\uFEFF/, "").replace(/\r/g, "");
     const blocks = source.split(/\n\s*\n/);
-    const toSeconds = (stamp) => { const m = stamp.match(/(?:(\d+):)?(\d{2}):(\d{2})[,.](\d{3})/); return m ? Number(m[1] || 0) * 3600 + Number(m[2]) * 60 + Number(m[3]) + Number(m[4]) / 1000 : NaN; };
-    const parsed = blocks.map((block) => { const lines = block.trim().split("\n"); const i = lines.findIndex((line) => line.includes("-->")); if (i < 0) return null; const times = lines[i].split("-->").map((part) => part.trim().split(/\s+/)[0]); const a = toSeconds(times[0]); const b = toSeconds(times[1]); const text = lines.slice(i + 1).join(" ").replace(/<[^>]*>/g, "").trim(); return Number.isFinite(a) && Number.isFinite(b) && b > a && text ? { start: a, end: b, text } : null; }).filter(Boolean).sort((a,b) => a.start-b.start);
+    const toSeconds = (stamp) => {
+      const match = stamp.match(/^(?:(\\d+):)?(\\d{1,2}):(\\d{2})[,.](\\d{1,3})$/);
+      if (!match) return NaN;
+      const hours = Number(match[1] || 0);
+      const minutes = Number(match[2]);
+      const seconds = Number(match[3]);
+      const milliseconds = Number((match[4] + "00").slice(0, 3));
+      if (minutes > 59 || seconds > 59) return NaN;
+      return hours * 3600 + minutes * 60 + seconds + milliseconds / 1000;
+    };
+    const parsed = blocks.map((block) => {
+      const lines = block.trim().split("\\n");
+      const i = lines.findIndex((line) => line.includes("-->"));
+      if (i < 0) return null;
+      const times = lines[i].split("-->").map((part) => part.trim().split(/\\s+/)[0]);
+      const a = toSeconds(times[0]);
+      const b = toSeconds(times[1]);
+      const text = lines.slice(i + 1).join(" ").replace(/<[^>]*>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
+      return Number.isFinite(a) && Number.isFinite(b) && b > a && text ? { start: a, end: b, text } : null;
+    }).filter(Boolean).sort((a, b) => a.start - b.start);
     if (!parsed.length) { setStatus("No valid subtitle cues found in this file."); return; }
     setSubtitles(parsed); setSubtitleName(file.name); setStatus(`${parsed.length} subtitle cues loaded for preview and export.`);
   };
@@ -478,7 +496,19 @@ export default function ReelEditor() {
             <span>{formatTime(currentTime)} / {formatTime(end || duration)}</span>
             <span>{ratio}</span>
           </div>
-          {videoUrl && <label className="reel-timeline">Timeline · scrub preview<input type="range" min={start} max={Math.max(end, start + 0.1)} step="0.05" value={Math.min(videoRef.current?.currentTime || start, end || duration)} onChange={(e) => { if (videoRef.current) { videoRef.current.currentTime = Number(e.target.value); drawFrame(); } }} /></label>}
+          {videoUrl && <div className="reel-timeline">
+            <span>Timeline · scrub preview</span>
+            {analysisResult && <div className="reel-marker-legend" aria-label="Detected timeline markers">
+              <span><i className="reel-marker-swatch scene" /> Scene-change candidates ({analysisResult.sceneCutMarkers.length})</span>
+              <span><i className="reel-marker-swatch beat" /> Audio peaks ({analysisResult.beatMarkers.length})</span>
+            </div>}
+            {analysisResult && <div className="reel-marker-track" role="group" aria-label="Detected markers across the source video">
+              <span className="reel-marker-trim" style={{left: `${duration ? start / duration * 100 : 0}%`, width: `${duration ? Math.max(0, (end - start) / duration * 100) : 0}%`}} />
+              {analysisResult.sceneCutMarkers.map((time) => <button key={`scene-${time}`} type="button" className="reel-tick scene" style={{left: `${duration ? time / duration * 100 : 0}%`}} title={`Scene-change candidate · ${formatTime(time)}`} aria-label={`Seek to scene-change candidate at ${formatTime(time)}`} disabled={time < start || time > end} onClick={() => { if (videoRef.current) { videoRef.current.currentTime = time; setCurrentTime(time); drawFrame(); } }} />)}
+              {analysisResult.beatMarkers.filter((_, index, all) => all.length <= 180 || index % Math.ceil(all.length / 180) === 0).map((time) => <button key={`beat-${time}`} type="button" className="reel-tick beat" style={{left: `${duration ? time / duration * 100 : 0}%`}} title={`Audio energy peak · ${formatTime(time)}`} aria-label={`Seek to audio energy peak at ${formatTime(time)}`} disabled={time < start || time > end} onClick={() => { if (videoRef.current) { videoRef.current.currentTime = time; setCurrentTime(time); drawFrame(); } }} />)}
+            </div>}
+            <input aria-label="Scrub video preview" type="range" min={start} max={Math.max(end, start + 0.1)} step="0.05" value={Math.min(videoRef.current?.currentTime || start, end || duration)} onChange={(e) => { if (videoRef.current) { videoRef.current.currentTime = Number(e.target.value); drawFrame(); } }} />
+          </div>}
         </div>
         <div className="reel-controls-panel">
           <div className="reel-simple-intro"><strong>Get started in 3 easy steps</strong><ol><li>Choose your video.</li><li>Review the preview.</li><li>Export and save your video.</li></ol><small>Your files are processed on this device.</small></div>
