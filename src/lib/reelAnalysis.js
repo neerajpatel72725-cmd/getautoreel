@@ -114,6 +114,7 @@ export async function analyzeReelMedia({ video, file, onProgress = () => {} }) {
       sceneChanges: sceneCuts.length,
       beatMarkers: beats,
       segments,
+      sceneCutMarkers: sceneCuts.map(t => Number(t.toFixed(2))),
       analysis: beats.length ? "Visual scene changes + audio energy peaks" : "Visual scene changes (audio beat analysis unavailable)",
     };
   } finally {
