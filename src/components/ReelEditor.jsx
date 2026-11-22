@@ -409,7 +409,7 @@ export default function ReelEditor() {
         const extension = (recorder.mimeType || mimeType || "").includes("mp4") ? "mp4" : "webm";
         setPendingDownload((previous) => {
           if (previous?.url) URL.revokeObjectURL(previous.url);
-          return { url, filename: `genora-ai-reel.${extension}` };
+          return { url, filename: `getautoreel-reel.${extension}` };
         });
         setProgress(100);
         setBusy(false);
@@ -475,7 +475,7 @@ export default function ReelEditor() {
   return (
     <section className="reel-editor" id="reel-editor">
       <div className="reel-heading">
-        <span className="reel-kicker">GENORA CREATOR TOOLS · BETA</span>
+        <span className="reel-kicker">GetAutoReel CREATOR TOOLS · BETA</span>
         <h2>Make a Reel</h2>
         <p>Choose a video, review the preview, then export. No setup required.</p>
       </div>
