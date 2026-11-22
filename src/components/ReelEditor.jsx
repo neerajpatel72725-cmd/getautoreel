@@ -99,7 +99,7 @@ export default function ReelEditor() {
 
   const loadSubtitles = async (file) => {
     if (!file) return;
-    if (!/\\.(srt|vtt)$/i.test(file.name)) {
+    if (!/\.(srt|vtt)$/i.test(file.name)) {
       setStatus("Choose an SRT or WebVTT subtitle file.");
       return;
     }
