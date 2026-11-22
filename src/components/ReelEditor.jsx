@@ -367,6 +367,9 @@ export default function ReelEditor() {
       const output = new MediaStream([...canvasStream.getVideoTracks()]);
       let audioContext = audioContextRef.current;
       let music;
+      let audioDestination;
+      let musicSource;
+      let musicGain;
       if (videoVolume > 0 || musicUrl) {
         audioContext ||= new AudioContext();
         audioContextRef.current = audioContext;
@@ -379,10 +382,8 @@ export default function ReelEditor() {
           videoAudioSourceRef.current.connect(videoAudioGainRef.current);
           videoAudioGainRef.current.connect(audioContext.destination);
         }
-        const audioDestination = audioContext.createMediaStreamDestination();
+        audioDestination = audioContext.createMediaStreamDestination();
         videoAudioGainRef.current.connect(audioDestination);
-        let musicSource;
-        let musicGain;
         if (musicUrl) {
           music = new Audio(musicUrl);
           musicElementRef.current = music;
