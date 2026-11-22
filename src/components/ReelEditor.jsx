@@ -131,7 +131,41 @@ export default function ReelEditor() {
       setStatus("Please choose an audio file.");
       return;
     }
-    setMusicUrl(URL.createObjectURL(file));
+    const nextUrl = URL.createObjectURL(file);
+    setMusicUrl((previous) => {
+      if (previous) URL.revokeObjectURL(previous);
+      return nextUrl;
+    });
+    setStatus("Music loaded. Preview and export will include the selected track.");
+  };
+
+  const removeVideo = () => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.removeAttribute("src");
+      videoRef.current.load();
+    }
+    setVideoUrl((previous) => {
+      if (previous) URL.revokeObjectURL(previous);
+      return "";
+    });
+    videoFileRef.current = null;
+    setAnalysisResult(null);
+    setVideoName("");
+    setVideoSize(0);
+    setVideoDimensions("");
+    setVideoLoading(false);
+    setDuration(0);
+    setCurrentTime(0);
+    setStart(0);
+    setEnd(0);
+    setSubtitles([]);
+    setSubtitleName("");
+    setPendingDownload((previous) => {
+      if (previous?.url) URL.revokeObjectURL(previous.url);
+      return null;
+    });
+    setStatus("Video removed. Choose another file to start.");
   };
 
   const onMetadata = () => {
@@ -517,7 +551,7 @@ export default function ReelEditor() {
             <input type="file" accept="video/*" onChange={(e) => { loadVideo(e.target.files?.[0]); e.target.value = ""; }} />
             <span>＋</span><strong>{videoUrl ? "Choose another video" : "Choose video"}</strong><small>Files stay on your device</small>
           </label>
-          {videoName && <div className="reel-file-meta"><span>▣</span><span title={videoName}>{videoName} · {(videoSize / (1024 * 1024)).toFixed(1)} MB{videoDimensions ? ` · ${videoDimensions}` : ""}</span><button type="button" onClick={() => { setVideoUrl(""); setVideoName(""); setVideoSize(0); setVideoDimensions(""); setVideoLoading(false); setDuration(0); setStart(0); setEnd(0); setStatus(""); }}>Remove</button></div>}
+          {videoName && <div className="reel-file-meta"><span>▣</span><span title={videoName}>{videoName} · {(videoSize / (1024 * 1024)).toFixed(1)} MB{videoDimensions ? ` · ${videoDimensions}` : ""}</span><button type="button" onClick={removeVideo}>Remove</button></div>}
           {videoLoading && <p className="reel-loading" role="status"><span className="reel-spinner" /> Preparing video preview… Large 4K files may take longer on mobile.</p>}
           <details className="reel-advanced"><summary>Optional settings · Video, captions, music</summary>
           {videoUrl && <div className="reel-step"><span>02</span><div><h3>Trim video</h3><p>Adjust only if you want to trim the clip.</p></div></div>}
@@ -550,7 +584,7 @@ export default function ReelEditor() {
           </div>}
           <div className="reel-step"><span>04</span><div><h3>Add background music</h3><p>Use an audio file you have rights to use.</p></div></div>
           <label className="reel-audio-upload"><input type="file" accept="audio/*" onChange={(e) => loadMusic(e.target.files?.[0])} />♫ {musicUrl ? "Music added · change track" : "Add music track"}</label>
-          {musicUrl && <><label className="reel-volume">Music volume <b>{musicVolume}%</b><input type="range" min="0" max="100" value={musicVolume} onChange={(e) => setMusicVolume(Number(e.target.value))} /></label><button type="button" className="reel-secondary" onClick={() => setMusicUrl("")}>Remove music track</button></>}
+          {musicUrl && <><label className="reel-volume">Music volume <b>{musicVolume}%</b><input type="range" min="0" max="100" value={musicVolume} onChange={(e) => setMusicVolume(Number(e.target.value))} /></label><button type="button" className="reel-secondary" onClick={() => { setMusicUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return ""; }); setStatus("Background music removed."); }}>Remove music track</button></>}
           </details>
           <button className="reel-export reel-analyze" type="button" onClick={runAutoAnalysis} disabled={!videoUrl || videoLoading || analyzing || busy}>{analyzing ? `Analyzing… ${analysisProgress}%` : "Optional: Check video & audio"}</button>
           {analyzing && <progress className="reel-progress" max="100" value={analysisProgress} aria-label="Analysis progress" />}
