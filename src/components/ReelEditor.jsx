@@ -29,7 +29,6 @@ export default function ReelEditor() {
   const [ratio, setRatio] = useState("original");
   const [caption, setCaption] = useState("");
   const [captionEnabled, setCaptionEnabled] = useState(true);
-  const [language, setLanguage] = useState("Hinglish");
   const [style, setStyle] = useState("Clean & cinematic");
   const [musicVolume, setMusicVolume] = useState(35);
   const [fitMode, setFitMode] = useState("fit");
@@ -147,7 +146,7 @@ export default function ReelEditor() {
       if (previous) URL.revokeObjectURL(previous);
       return nextUrl;
     });
-    setStatus("Music loaded. Preview and export will include the selected track.");
+    setStatus("Music loaded. It will be mixed into the exported reel; the live preview does not play the added music yet.");
   };
 
   const removeVideo = () => {
@@ -589,8 +588,8 @@ export default function ReelEditor() {
           <div className="reel-field"><label htmlFor="reel-original-volume">Original video volume · {videoVolume}%</label><input id="reel-original-volume" type="range" min="0" max="100" value={videoVolume} onChange={(e) => setVideoVolume(Number(e.target.value))} /></div>
           <div className="reel-field"><label htmlFor="reel-quality">Export quality</label><select id="reel-quality" value={exportQuality} onChange={(e) => setExportQuality(e.target.value)}><option value="original">Original quality · Auto bitrate</option><option value="12">High · 12 Mbps</option><option value="20">Very high · 20 Mbps</option><option value="35">Maximum · 35 Mbps</option></select></div>
           <div className="reel-field"><label htmlFor="reel-fit">Video framing</label><select id="reel-fit" value={fitMode} onChange={(e) => setFitMode(e.target.value)}><option value="fill">Fill frame · crop edges</option><option value="fit">Fit whole video · add bars</option></select></div>
-          <div className="reel-field"><label htmlFor="reel-language">Caption language · AI captions coming soon</label><select id="reel-language" value={language} onChange={(e) => setLanguage(e.target.value)}><option>Hindi</option><option>English</option><option>Hinglish</option></select></div>
-          <div className="reel-field"><label htmlFor="reel-style">Text style</label><select id="reel-style" value={style} onChange={(e) => setStyle(e.target.value)}><option>Clean & cinematic</option><option>Bold creator</option><option>Minimal</option><option>Vlog</option></select></div>
+          <p className="reel-caption-help">Automatic speech-to-text captions are not available yet. Type a caption below or import timed SRT/VTT subtitles.</p>
+          <div className="reel-field"><label htmlFor="reel-style">Text style</label><select id="reel-style" value={style} onChange={(e) => setStyle(e.target.value)}><option>Clean & cinematic</option><option>Bold creator</option><option>Minimal</option></select></div>
           <div className="reel-field"><label htmlFor="reel-caption-scale">Caption size · {captionScale}%</label><input id="reel-caption-scale" type="range" min="70" max="140" step="5" value={captionScale} onChange={(e) => setCaptionScale(Number(e.target.value))} /></div>
           <label className="reel-caption-toggle"><input type="checkbox" checked={captionBackground} onChange={(e) => setCaptionBackground(e.target.checked)} /> Add readable caption background</label>
           <div className="reel-field"><label htmlFor="reel-text-position">Text position</label><select id="reel-text-position" value={textPosition} onChange={(e) => setTextPosition(e.target.value)}><option value="bottom">Bottom</option><option value="center">Center</option><option value="top">Top</option></select></div>
@@ -605,9 +604,9 @@ export default function ReelEditor() {
             <label>Hide after <b>{formatTime(captionEnd || end || duration)}</b><input type="range" min={captionStart} max={Math.max(end, captionStart + 0.1)} step="0.1" value={Math.min(captionEnd || end || duration, end || duration)} onChange={(e) => setCaptionEnd(Number(e.target.value))} /></label>
             <button type="button" className="reel-secondary" onClick={() => { setCaptionStart(start); setCaptionEnd(end || duration); }}>Show for full trimmed clip</button>
           </div>}
-          <div className="reel-step"><span>04</span><div><h3>Add background music</h3><p>Use an audio file you have rights to use.</p></div></div>
-          <label className="reel-audio-upload"><input type="file" accept="audio/*" onChange={(e) => loadMusic(e.target.files?.[0])} />♫ {musicUrl ? "Music added · change track" : "Add music track"}</label>
-          {musicUrl && <><label className="reel-volume">Music volume <b>{musicVolume}%</b><input type="range" min="0" max="100" value={musicVolume} onChange={(e) => setMusicVolume(Number(e.target.value))} /></label><button type="button" className="reel-secondary" onClick={() => { setMusicUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return ""; }); setStatus("Background music removed."); }}>Remove music track</button></>}
+          <div className="reel-step"><span>04</span><div><h3>Add background music</h3><p>Music is mixed into export; live preview currently plays the original video audio only.</p></div></div>
+          <label className="reel-audio-upload"><input type="file" accept="audio/*" onChange={(e) => loadMusic(e.target.files?.[0])} />♫ {musicUrl ? "Music added · change track" : "Add music track (export)"}</label>
+          {musicUrl && <><label className="reel-volume">Export music volume <b>{musicVolume}%</b><input type="range" min="0" max="100" value={musicVolume} onChange={(e) => setMusicVolume(Number(e.target.value))} /></label><button type="button" className="reel-secondary" onClick={() => { setMusicUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return ""; }); setStatus("Background music removed."); }}>Remove music track</button></>}
           </details>
           <button className="reel-export reel-analyze" type="button" onClick={runAutoAnalysis} disabled={!videoUrl || videoLoading || analyzing || busy}>{analyzing ? `Analyzing… ${analysisProgress}%` : "Optional: Check video & audio"}</button>
           {analyzing && <progress className="reel-progress" max="100" value={analysisProgress} aria-label="Analysis progress" />}
