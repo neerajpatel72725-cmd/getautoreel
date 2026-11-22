@@ -75,6 +75,11 @@ export default function ReelEditor() {
     if (pendingDownload?.url) URL.revokeObjectURL(pendingDownload.url);
   }, [pendingDownload]);
 
+  useEffect(() => {
+    if (videoRef.current) videoRef.current.volume = videoVolume / 100;
+    if (videoAudioGainRef.current) videoAudioGainRef.current.gain.value = videoVolume / 100;
+  }, [videoVolume]);
+
   const loadVideo = (file) => {
     if (!file) return;
     if (!file.type.startsWith("video/")) {
@@ -88,6 +93,14 @@ export default function ReelEditor() {
     const nextUrl = URL.createObjectURL(file);
     videoFileRef.current = file;
     setAnalysisResult(null);
+    setSubtitles([]);
+    setSubtitleName("");
+    setCaptionStart(0);
+    setCaptionEnd(0);
+    setPendingDownload((previous) => {
+      if (previous?.url) URL.revokeObjectURL(previous.url);
+      return null;
+    });
     setVideoLoading(true);
     setVideoUrl(nextUrl);
     setVideoName(file.name);
@@ -357,21 +370,28 @@ export default function ReelEditor() {
       if (videoVolume > 0 || musicUrl) {
         audioContext ||= new AudioContext();
         audioContextRef.current = audioContext;
-        // Route source audio through Web Audio so the original-volume control works in the exported file.
-        if (!videoAudioSourceRef.current) videoAudioSourceRef.current = audioContext.createMediaElementSource(video);
+        // Keep the original video audible in preview after export by maintaining
+        // a persistent gain-to-speakers route and a temporary export route.
         videoAudioGainRef.current ||= audioContext.createGain();
         videoAudioGainRef.current.gain.value = videoVolume / 100;
+        if (!videoAudioSourceRef.current) {
+          videoAudioSourceRef.current = audioContext.createMediaElementSource(video);
+          videoAudioSourceRef.current.connect(videoAudioGainRef.current);
+          videoAudioGainRef.current.connect(audioContext.destination);
+        }
         const audioDestination = audioContext.createMediaStreamDestination();
-        videoAudioSourceRef.current.connect(videoAudioGainRef.current);
         videoAudioGainRef.current.connect(audioDestination);
+        let musicSource;
+        let musicGain;
         if (musicUrl) {
           music = new Audio(musicUrl);
           musicElementRef.current = music;
           music.loop = true;
-          const musicSource = audioContext.createMediaElementSource(music);
-          const musicGain = audioContext.createGain();
+          musicSource = audioContext.createMediaElementSource(music);
+          musicGain = audioContext.createGain();
           musicGain.gain.value = musicVolume / 100;
-          musicSource.connect(musicGain).connect(audioDestination);
+          musicSource.connect(musicGain);
+          musicGain.connect(audioDestination);
         }
         audioDestination.stream.getAudioTracks().forEach((track) => output.addTrack(track));
         await audioContext.resume();
@@ -409,7 +429,11 @@ export default function ReelEditor() {
         renderFrameId = null;
         watchdogTimer = null;
         music?.pause();
-        videoAudioGainRef.current?.disconnect();
+        musicSource?.disconnect();
+        musicGain?.disconnect();
+        if (audioDestination) {
+          try { videoAudioGainRef.current?.disconnect(audioDestination); } catch {}
+        }
         output.getTracks().forEach((track) => track.stop());
         canvasStream.getTracks().forEach((track) => track.stop());
         video.pause();
