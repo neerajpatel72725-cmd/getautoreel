@@ -2,7 +2,7 @@ export default function Footer() {
   return (
     <footer className="footer">
 
-      <h2>🚀 GENORA AI</h2>
+      <h2>🚀 GetAutoReel</h2>
 
       <p>
         Discover the best AI tools for creators,
@@ -19,7 +19,7 @@ export default function Footer() {
       <hr />
 
       <p className="copyright">
-        © 2026 GENORA AI • All Rights Reserved.
+        © 2026 GetAutoReel • All Rights Reserved.
       </p>
 
     </footer>
