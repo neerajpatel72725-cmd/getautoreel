@@ -193,7 +193,7 @@ export default function ReelEditor() {
     drawFrame();
   };
 
-  const runAutoAnalysis = async () => {
+  const runAutoAnalysis = async ({ autoApply = false } = {}) => {
     const video = videoRef.current;
     if (!video || videoLoading || analyzing || !videoUrl) return;
     setAnalyzing(true);
@@ -217,7 +217,23 @@ export default function ReelEditor() {
       result.suggestedEnd = Number(suggestedEnd.toFixed(2));
       result.suggestionMethod = chosen ? "analysis segment nearest the target length" : "centered fallback window";
       setAnalysisResult(result);
-      setStatus(`Analysis complete: ${result.sceneChanges} scene changes and ${result.beatMarkers.length} audio rhythm peaks detected. A suggested trim is ready to review.`);
+      if (autoApply) {
+        setStart(result.suggestedStart);
+        setEnd(result.suggestedEnd);
+        setCaptionStart(result.suggestedStart);
+        setCaptionEnd(result.suggestedEnd);
+        setRatio("9:16");
+        setFitMode("fill");
+        setVisualFilter("contrast(1.08) saturate(1.12) brightness(1.02)");
+        setStyle("Bold creator");
+        setTextPosition("bottom");
+        setCaptionBackground(true);
+        setCaptionEnabled(true);
+        if (videoRef.current) videoRef.current.currentTime = result.suggestedStart;
+        setStatus("Auto Reel preset applied. Review trim, vertical framing and styling before export.");
+      } else {
+        setStatus(`Analysis complete: ${result.sceneChanges} scene changes and ${result.beatMarkers.length} audio rhythm peaks detected. A suggested trim is ready to review.`);
+      }
     } catch (error) {
       setStatus(error?.message || "Automatic analysis failed. Try a shorter MP4 video.");
     } finally {
@@ -608,7 +624,9 @@ export default function ReelEditor() {
           <label className="reel-audio-upload"><input type="file" accept="audio/*" onChange={(e) => loadMusic(e.target.files?.[0])} />♫ {musicUrl ? "Music added · change track" : "Add music track (export)"}</label>
           {musicUrl && <><label className="reel-volume">Export music volume <b>{musicVolume}%</b><input type="range" min="0" max="100" value={musicVolume} onChange={(e) => setMusicVolume(Number(e.target.value))} /></label><button type="button" className="reel-secondary" onClick={() => { setMusicUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return ""; }); setStatus("Background music removed."); }}>Remove music track</button></>}
           </details>
-          <button className="reel-export reel-analyze" type="button" onClick={runAutoAnalysis} disabled={!videoUrl || videoLoading || analyzing || busy}>{analyzing ? `Analyzing… ${analysisProgress}%` : "Optional: Check video & audio"}</button>
+          <button className="reel-export reel-auto-create" type="button" onClick={() => runAutoAnalysis({ autoApply: true })} disabled={!videoUrl || videoLoading || analyzing || busy}>{analyzing ? `Creating reel… ${analysisProgress}%` : "✨ Auto-create Reel"}</button>
+          <p className="reel-caption-help">Analyzes visual changes and audio energy, applies a suggested trim, vertical framing and creator-style look. Review before export; semantic AI highlights and speech captions are not enabled.</p>
+          <button className="reel-export reel-analyze" type="button" onClick={() => runAutoAnalysis()} disabled={!videoUrl || videoLoading || analyzing || busy}>{analyzing ? `Analyzing… ${analysisProgress}%` : "Optional: Check video & audio"}</button>
           {analyzing && <progress className="reel-progress" max="100" value={analysisProgress} aria-label="Analysis progress" />}
           {analysisResult && <div className="reel-analysis-card"><strong>Automatic analysis report</strong><span>{analysisResult.sceneChanges} visual scene changes</span><span>{analysisResult.beatMarkers.length} audio rhythm peaks</span><span>{analysisResult.segments.length} timeline sections mapped</span><span>Suggested trim: {formatTime(analysisResult.suggestedStart)} – {formatTime(analysisResult.suggestedEnd)}</span><button type="button" className="reel-secondary" onClick={() => { setStart(analysisResult.suggestedStart); setEnd(analysisResult.suggestedEnd); setCaptionStart(analysisResult.suggestedStart); setCaptionEnd(analysisResult.suggestedEnd); if (videoRef.current) videoRef.current.currentTime = analysisResult.suggestedStart; setStatus("Suggested trim applied. Preview it before exporting."); }}>Apply suggested trim</button><small>Suggestion method: {analysisResult.suggestionMethod}. This is a timeline heuristic, not semantic AI highlight detection. Visual changes and audio energy are analyzed; speech-to-text captions and semantic AI editing are not enabled.</small></div>}
           <button className="reel-export" type="button" onClick={exportReel} disabled={!videoUrl || videoLoading || busy}>{busy ? `Exporting… ${progress}%` : "2. Export video"}</button>
