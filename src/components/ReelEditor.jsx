@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./ReelEditor.css";
 import { analyzeReelMedia } from "../lib/reelAnalysis";
+import { parseSubtitleText } from "../lib/subtitleParser";
 
 const formatTime = (value) => {
   if (!Number.isFinite(value)) return "00:00";
@@ -98,33 +99,30 @@ export default function ReelEditor() {
 
   const loadSubtitles = async (file) => {
     if (!file) return;
-    if (!/\.(srt|vtt)$/i.test(file.name)) { setStatus("Choose an SRT or WebVTT subtitle file."); return; }
-    const source = (await file.text()).replace(/^\uFEFF/, "").replace(/\r/g, "");
-    const blocks = source.split(/\n\s*\n/);
-    const toSeconds = (stamp) => {
-      const match = stamp.match(/^(?:(\\d+):)?(\\d{1,2}):(\\d{2})[,.](\\d{1,3})$/);
-      if (!match) return NaN;
-      const hours = Number(match[1] || 0);
-      const minutes = Number(match[2]);
-      const seconds = Number(match[3]);
-      const milliseconds = Number((match[4] + "00").slice(0, 3));
-      if (minutes > 59 || seconds > 59) return NaN;
-      return hours * 3600 + minutes * 60 + seconds + milliseconds / 1000;
-    };
-    const parsed = blocks.map((block) => {
-      const lines = block.trim().split("\\n");
-      const i = lines.findIndex((line) => line.includes("-->"));
-      if (i < 0) return null;
-      const times = lines[i].split("-->").map((part) => part.trim().split(/\\s+/)[0]);
-      const a = toSeconds(times[0]);
-      const b = toSeconds(times[1]);
-      const text = lines.slice(i + 1).join(" ").replace(/<[^>]*>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
-      return Number.isFinite(a) && Number.isFinite(b) && b > a && text ? { start: a, end: b, text } : null;
-    }).filter(Boolean).sort((a, b) => a.start - b.start);
-    if (!parsed.length) { setStatus("No valid subtitle cues found in this file."); return; }
-    setSubtitles(parsed); setSubtitleName(file.name); setStatus(`${parsed.length} subtitle cues loaded for preview and export.`);
+    if (!/\\.(srt|vtt)$/i.test(file.name)) {
+      setStatus("Choose an SRT or WebVTT subtitle file.");
+      return;
+    }
+    try {
+      const parsed = parseSubtitleText(await file.text());
+      if (!parsed.length) {
+        setStatus("No valid subtitle cues found. Check the SRT or WebVTT timestamps and try again.");
+        return;
+      }
+      const bounded = duration > 0
+        ? parsed.filter((cue) => cue.start < duration).map((cue) => ({ ...cue, end: Math.min(cue.end, duration) })).filter((cue) => cue.end > cue.start)
+        : parsed;
+      if (!bounded.length) {
+        setStatus("Subtitle cues do not overlap this video. Check the timestamp range.");
+        return;
+      }
+      setSubtitles(bounded);
+      setSubtitleName(file.name);
+      setStatus(`${bounded.length} subtitle cues loaded for preview and export.`);
+    } catch {
+      setStatus("Subtitle file could not be read. Please choose a valid SRT or WebVTT file.");
+    }
   };
-
   const loadMusic = (file) => {
     if (!file) return;
     if (!file.type.startsWith("audio/")) {
@@ -571,7 +569,7 @@ export default function ReelEditor() {
           <div className="reel-field"><label htmlFor="reel-caption-scale">Caption size · {captionScale}%</label><input id="reel-caption-scale" type="range" min="70" max="140" step="5" value={captionScale} onChange={(e) => setCaptionScale(Number(e.target.value))} /></div>
           <label className="reel-caption-toggle"><input type="checkbox" checked={captionBackground} onChange={(e) => setCaptionBackground(e.target.checked)} /> Add readable caption background</label>
           <div className="reel-field"><label htmlFor="reel-text-position">Text position</label><select id="reel-text-position" value={textPosition} onChange={(e) => setTextPosition(e.target.value)}><option value="bottom">Bottom</option><option value="center">Center</option><option value="top">Top</option></select></div>
-          <div className="reel-field"><label htmlFor="reel-subtitles">Import timed subtitles (SRT / VTT)</label><input id="reel-subtitles" type="file" accept=".srt,.vtt" onChange={(e) => loadSubtitles(e.target.files?.[0])} /></div>
+          <div className="reel-field"><label htmlFor="reel-subtitles">Import timed subtitles (SRT / VTT)</label><input id="reel-subtitles" type="file" accept=".srt,.vtt" onChange={(e) => { loadSubtitles(e.target.files?.[0]); e.target.value = ""; }} /></div>
           {subtitleName && <div className="reel-file-meta"><span>CC</span><span title={subtitleName}>{subtitleName} · {subtitles.length} cues</span><button type="button" onClick={() => { setSubtitles([]); setSubtitleName(""); }}>Remove</button></div>}
           <label className="reel-caption-toggle"><input type="checkbox" checked={captionEnabled} onChange={(e) => setCaptionEnabled(e.target.checked)} /> Show caption on video</label>
           <div className="reel-field"><label htmlFor="reel-caption">On-screen text / caption (burned into video)</label><textarea id="reel-caption" rows="3" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Type your caption here. It will appear on the video preview and exported reel…" /></div>
