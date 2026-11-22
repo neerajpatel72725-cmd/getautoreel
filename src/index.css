@@ -873,3 +873,10 @@ footer hr {
 .hero-secondary-btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:12px 17px;border:1px solid #ffffff60;border-radius:10px;color:#fff;font-size:13px;font-weight:700}
 .hero-secondary-btn:hover{background:#ffffff16;transform:translateY(-2px)}
 @media(max-width:420px){.hero-actions{align-items:stretch;flex-direction:column}.hero-actions>*{width:100%}}
+
+.policy-content{max-width:850px;margin:32px auto;padding:clamp(20px,4vw,36px);border:1px solid var(--line);border-radius:18px;background:#fff;color:var(--text);line-height:1.7}
+.policy-content h2{margin:0 0 16px;font-size:clamp(24px,3vw,32px)}
+.policy-content p,.policy-content li{font-size:14px;color:var(--muted)}
+.policy-content ul{padding-left:22px}
+.policy-content li{margin:8px 0}
+.policy-content:target{scroll-margin-top:90px}
