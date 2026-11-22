@@ -30,7 +30,7 @@ export default function App() {
     <>
       <nav className="navbar">
         <a href="#home" className="brand">
-          ✦ GENORA AI
+          ✦ GetAutoReel
         </a>
 
         <div className="menu">
