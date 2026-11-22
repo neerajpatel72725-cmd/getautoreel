@@ -229,8 +229,16 @@ export default function ReelEditor() {
         setTextPosition("bottom");
         setCaptionBackground(true);
         setCaptionEnabled(true);
-        if (videoRef.current) videoRef.current.currentTime = result.suggestedStart;
-        setStatus("Auto Reel preset applied. Review trim, vertical framing and styling before export.");
+        if (videoRef.current) {
+          const player = videoRef.current;
+          const redraw = () => {
+            requestAnimationFrame(() => requestAnimationFrame(() => drawFrame()));
+          };
+          player.addEventListener("seeked", redraw, { once: true });
+          player.currentTime = result.suggestedStart;
+          if (player.currentTime === result.suggestedStart) redraw();
+        }
+        setStatus("Auto Reel preset applied: selected clip, vertical 9:16 crop and color enhancement. The edited preview is refreshed; export to create the downloadable video.");
       } else {
         setStatus(`Analysis complete: ${result.sceneChanges} scene changes and ${result.beatMarkers.length} audio rhythm peaks detected. A suggested trim is ready to review.`);
       }
@@ -323,7 +331,7 @@ export default function ReelEditor() {
   useEffect(() => {
     if (videoRef.current && !videoRef.current.paused) return;
     drawFrame();
-  }, [caption, captionEnabled, ratio, videoUrl, fitMode, style, textPosition, visualFilter, captionBackground, captionScale, captionStart, captionEnd, subtitles]);
+  }, [caption, captionEnabled, ratio, videoUrl, fitMode, style, textPosition, visualFilter, captionBackground, captionScale, captionStart, captionEnd, start, end, subtitles]);
 
   const previewFrame = () => {
     drawFrame();
