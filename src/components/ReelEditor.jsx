@@ -56,6 +56,7 @@ export default function ReelEditor() {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [autoSegments, setAutoSegments] = useState([]);
 
   useEffect(() => () => {
     if (videoUrl) URL.revokeObjectURL(videoUrl);
@@ -218,10 +219,26 @@ export default function ReelEditor() {
       result.suggestionMethod = chosen ? "analysis segment nearest the target length" : "centered fallback window";
       setAnalysisResult(result);
       if (autoApply) {
-        setStart(result.suggestedStart);
-        setEnd(result.suggestedEnd);
-        setCaptionStart(result.suggestedStart);
-        setCaptionEnd(result.suggestedEnd);
+        const candidates = result.segments
+          .map((segment) => {
+            const duration = segment.end - segment.start;
+            const beatCount = result.beatMarkers.filter((beat) => beat >= segment.start && beat < segment.end).length;
+            const sceneCutCount = result.sceneCutMarkers.filter((cut) => cut >= segment.start && cut < segment.end).length;
+            const score = Math.min(duration, 8) + beatCount * 1.5 + sceneCutCount * 2;
+            return { ...segment, score };
+          })
+          .filter((segment) => segment.end - segment.start >= 2.5)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 3)
+          .sort((a, b) => a.start - b.start);
+        const montage = candidates.length
+          ? candidates.map(({ start, end }) => ({ start, end }))
+          : [{ start: result.suggestedStart, end: result.suggestedEnd }];
+        setAutoSegments(montage);
+        setStart(montage[0].start);
+        setEnd(montage[0].end);
+        setCaptionStart(montage[0].start);
+        setCaptionEnd(montage[0].end);
         setRatio("9:16");
         setFitMode("fill");
         setVisualFilter("contrast(1.08) saturate(1.12) brightness(1.02)");
@@ -238,7 +255,7 @@ export default function ReelEditor() {
           player.currentTime = result.suggestedStart;
           if (player.currentTime === result.suggestedStart) redraw();
         }
-        setStatus("Auto Reel preset applied: selected clip, vertical 9:16 crop and color enhancement. The edited preview is refreshed; export to create the downloadable video.");
+        setStatus(`Auto Reel selected ${montage.length} highlight segments. Export will join these cuts into one vertical montage with the applied look.`);
       } else {
         setStatus(`Analysis complete: ${result.sceneChanges} scene changes and ${result.beatMarkers.length} audio rhythm peaks detected. A suggested trim is ready to review.`);
       }
@@ -497,17 +514,10 @@ export default function ReelEditor() {
         video.pause();
       };
       recorder.start(1000);
-      try {
-        await video.play();
-      } catch {
-        exportFailed = true;
-        if (recorder.state !== "inactive") recorder.stop();
-        throw new Error("Playback could not start for export. Tap Play once, then try Export again.");
-      }
-      let lastMediaTime = video.currentTime;
-      let lastProgressAt = performance.now();
+      const ranges = autoSegments.length > 1 ? autoSegments : [{ start, end }];
+      const totalDuration = ranges.reduce((sum, range) => sum + Math.max(0, range.end - range.start), 0);
+      let completedDuration = 0;
       let lastRenderedAt = 0;
-      // Match the 30 FPS capture stream without repeatedly drawing full-resolution frames at 60 FPS.
       const renderExportFrame = (timestamp) => {
         if (recorder.state === "inactive") return;
         if (timestamp - lastRenderedAt >= 1000 / 30) {
@@ -517,31 +527,33 @@ export default function ReelEditor() {
         renderFrameId = requestAnimationFrame(renderExportFrame);
       };
       renderFrameId = requestAnimationFrame(renderExportFrame);
-
-      // Keep progress and stall detection separate from frame rendering.
-      watchdogTimer = window.setInterval(() => {
-        if (recorder.state === "inactive") {
-          cleanupExport();
-          return;
+      for (const range of ranges) {
+        if (exportCancelledRef.current || recorder.state === "inactive") break;
+        video.pause();
+        await new Promise((resolve, reject) => {
+          const timeout = window.setTimeout(() => reject(new Error("Could not seek to a selected highlight.")), 8000);
+          const done = () => { clearTimeout(timeout); resolve(); };
+          video.addEventListener("seeked", done, { once: true });
+          video.currentTime = range.start;
+        });
+        try { await video.play(); }
+        catch { throw new Error("Playback could not start for export. Tap Play once, then try Export again."); }
+        const rangeStartedAt = performance.now();
+        while (!exportCancelledRef.current && recorder.state !== "inactive" && video.currentTime < range.end - 0.04 && !video.ended) {
+          const progressed = Math.max(0, video.currentTime - range.start);
+          setProgress(Math.min(99, Math.round(((completedDuration + progressed) / totalDuration) * 100)));
+          if (performance.now() - rangeStartedAt > Math.max(30000, (range.end - range.start) * 5000)) {
+            throw new Error("Export stalled while processing a selected clip. Try a shorter video.");
+          }
+          await new Promise((resolve) => setTimeout(resolve, 100));
         }
-        const now = performance.now();
-        if (video.currentTime > lastMediaTime + 0.02) {
-          lastMediaTime = video.currentTime;
-          lastProgressAt = now;
-        } else if (now - lastProgressAt > 20000) {
-          exportFailed = true;
-          if (recorder.state !== "inactive") recorder.stop();
-          setStatus("Video processing stalled for 20 seconds. Keep this page open, prevent screen lock, then retry with a shorter clip.");
-          setProgress(0);
-          return;
-        }
-        const mediaProgress = Math.max(0, (video.currentTime - start) / (end - start));
-        setProgress(Math.min(99, Math.round(mediaProgress * 100)));
-        if (video.currentTime >= end - 0.03 || video.ended) {
-          exportCompleted = true;
-          if (recorder.state !== "inactive") recorder.stop();
-        }
-      }, 500);
+        video.pause();
+        completedDuration += range.end - range.start;
+      }
+      if (!exportCancelledRef.current && recorder.state !== "inactive") {
+        exportCompleted = true;
+        recorder.stop();
+      }
     } catch (error) {
       if (recorderRef.current?.state && recorderRef.current.state !== "inactive") {
         try { recorderRef.current.stop(); } catch {}
