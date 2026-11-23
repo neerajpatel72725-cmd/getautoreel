@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "./ReelEditor.css";
 import { analyzeReelMedia } from "../lib/reelAnalysis";
 import { parseSubtitleText } from "../lib/subtitleParser";
+import { normalizeMontageSegments, updateMontageSegment } from "../lib/montageSegments";
 
 const formatTime = (value) => {
   if (!Number.isFinite(value)) return "00:00";
@@ -233,9 +234,10 @@ export default function ReelEditor() {
           .sort((a, b) => b.score - a.score)
           .slice(0, 3)
           .sort((a, b) => a.start - b.start);
-        const montage = candidates.length
-          ? candidates.map(({ start, end }) => ({ start, end }))
-          : [{ start: result.suggestedStart, end: result.suggestedEnd }];
+        const montage = normalizeMontageSegments(
+          candidates.length ? candidates.map(({ start, end }) => ({ start, end })) : [{ start: result.suggestedStart, end: result.suggestedEnd }],
+          duration,
+        );
         setAutoSegments(montage);
         setStart(montage[0].start);
         setEnd(montage[0].end);
@@ -254,8 +256,8 @@ export default function ReelEditor() {
             requestAnimationFrame(() => requestAnimationFrame(() => drawFrame()));
           };
           player.addEventListener("seeked", redraw, { once: true });
-          player.currentTime = result.suggestedStart;
-          if (player.currentTime === result.suggestedStart) redraw();
+          player.currentTime = montage[0].start;
+          if (player.currentTime === montage[0].start) redraw();
         }
         setStatus(`Auto Reel selected ${montage.length} highlight segments. Export will join these cuts into one vertical montage with the applied look.`);
       } else {
@@ -615,10 +617,11 @@ export default function ReelEditor() {
           {videoLoading && <p className="reel-loading" role="status"><span className="reel-spinner" /> Preparing video preview… Large 4K files may take longer on mobile.</p>}
           <details className="reel-advanced"><summary>Optional settings · Video, captions, music</summary>
           {videoUrl && <div className="reel-step"><span>02</span><div><h3>Trim video</h3><p>Adjust only if you want to trim the clip.</p></div></div>}
-          {videoUrl && <div className="reel-trim">
+          {videoUrl && autoSegments.length <= 1 && <div className="reel-trim">
             <label>Start <b>{formatTime(start)}</b><input type="range" min="0" max={Math.max(duration, 0.1)} step="0.1" value={start} onChange={(e) => { const v = Number(e.target.value); setStart(Math.min(v, Math.max(0, end - 0.2))); }} /></label>
             <label>End <b>{formatTime(end)}</b><input type="range" min="0" max={Math.max(duration, 0.1)} step="0.1" value={end} onChange={(e) => setEnd(Math.max(Number(e.target.value), start + 0.2))} /></label>
           </div>}
+          {videoUrl && autoSegments.length > 1 && <p className="reel-montage-note">Auto Reel is a multi-cut montage. Adjust each cut below and use Preview cut to review it; the single-clip trim sliders are hidden to avoid conflicting edits.</p>}
           <div className="reel-step"><span>03</span><div><h3>Make it yours</h3><p>Choose format, language and your editing vibe.</p></div></div>
           <div className="reel-field"><label htmlFor="reel-ratio">Video format</label><select id="reel-ratio" value={ratio} onChange={(e) => setRatio(e.target.value)}><option value="9:16">Full-screen vertical · 9:16 · Reels / Shorts · 1080×1920</option><option value="4:5">Vertical portrait · 4:5 · Instagram feed · 1080×1350</option><option value="original">Original · preserve exact source ratio & dimensions</option><option value="1:1">1:1 · Square · 1080×1080</option><option value="16:9">16:9 · Landscape · 1920×1080</option></select></div>
           <div className="reel-field"><label htmlFor="reel-speed">Playback speed</label><select id="reel-speed" value={playbackSpeed} onChange={(e) => setPlaybackSpeed(e.target.value)}><option value="0.5">0.5× Slow motion</option><option value="0.75">0.75×</option><option value="1">1× Normal</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2× Fast</option></select></div>
@@ -659,7 +662,7 @@ export default function ReelEditor() {
           <p className="reel-caption-help">Analyzes visual changes and audio energy, applies a suggested trim, vertical framing and creator-style look. Review before export; semantic AI highlights and speech captions are not enabled.</p>
           <button className="reel-export reel-analyze" type="button" onClick={() => runAutoAnalysis()} disabled={!videoUrl || videoLoading || analyzing || busy}>{analyzing ? `Analyzing… ${analysisProgress}%` : "Optional: Check video & audio"}</button>
           {analyzing && <progress className="reel-progress" max="100" value={analysisProgress} aria-label="Analysis progress" />}
-          {autoSegments.length > 1 && <div className="reel-analysis-card reel-montage-editor"><strong>Auto Reel montage · {autoSegments.length} cuts</strong>{autoSegments.map((segment, index) => <div className="reel-montage-cut" key={`${index}-${segment.start}`}><span>Clip {index + 1}</span><label>Start <input type="number" min="0" max={Math.max(0, segment.end - 0.3)} step="0.1" value={segment.start.toFixed(1)} onChange={(e) => { const value = Math.max(0, Math.min(Number(e.target.value), segment.end - 0.3)); setAutoSegments((items) => items.map((item, i) => i === index ? { ...item, start: value } : item)); }} /></label><label>End <input type="number" min={segment.start + 0.3} max={duration} step="0.1" value={segment.end.toFixed(1)} onChange={(e) => { const value = Math.max(segment.start + 0.3, Math.min(Number(e.target.value), duration)); setAutoSegments((items) => items.map((item, i) => i === index ? { ...item, end: value } : item)); }} /></label>{analysisResult?.beatMarkers?.length > 0 && <button type="button" className="reel-secondary" onClick={() => { const nearest = analysisResult.beatMarkers.reduce((best, beat) => Math.abs(beat - segment.start) < Math.abs(best - segment.start) ? beat : best, analysisResult.beatMarkers[0]); setAutoSegments((items) => items.map((item, i) => i === index ? { ...item, start: Math.max(0, Math.min(nearest, item.end - 0.3)) } : item)); }}>Snap start to beat</button>}<button type="button" className="reel-secondary" onClick={() => setAutoSegments((items) => { const next = items.filter((_, i) => i !== index); if (next.length === 1) { setStart(next[0].start); setEnd(next[0].end); } return next; })}>Remove</button></div>)}<small>Adjust clip start/end or remove cuts. Export joins selected clips chronologically.</small></div>}
+          {autoSegments.length > 1 && <div className="reel-analysis-card reel-montage-editor"><strong>Auto Reel montage · {autoSegments.length} cuts</strong>{autoSegments.map((segment, index) => <div className="reel-montage-cut" key={`${index}-${segment.start}`}><span>Clip {index + 1}</span><label>Start <input type="number" min="0" max={Math.max(0, segment.end - 0.3)} step="0.1" value={segment.start.toFixed(1)} onChange={(e) => { const next = updateMontageSegment(autoSegments, index, "start", e.target.value, duration); setAutoSegments(next); if (next.length) { setStart(next[0].start); setEnd(next[0].end); } }} /></label><label>End <input type="number" min={segment.start + 0.3} max={duration} step="0.1" value={segment.end.toFixed(1)} onChange={(e) => { const next = updateMontageSegment(autoSegments, index, "end", e.target.value, duration); setAutoSegments(next); if (next.length) { setStart(next[0].start); setEnd(next[0].end); } }} /></label>{analysisResult?.beatMarkers?.length > 0 && <button type="button" className="reel-secondary" onClick={() => { const nearest = analysisResult.beatMarkers.reduce((best, beat) => Math.abs(beat - segment.start) < Math.abs(best - segment.start) ? beat : best, analysisResult.beatMarkers[0]); setAutoSegments((items) => items.map((item, i) => i === index ? { ...item, start: Math.max(0, Math.min(nearest, item.end - 0.3)) } : item)); }}>Snap start to beat</button>}<button type="button" className="reel-secondary" onClick={() => { const player = videoRef.current; if (player) { setStart(segment.start); setEnd(segment.end); setCurrentTime(segment.start); player.currentTime = segment.start; player.playbackRate = Number(playbackSpeed); player.play().catch(() => {}); setStatus(`Previewing montage cut ${index + 1}. Export will still include all selected cuts.`); } }}>Preview cut</button><button type="button" className="reel-secondary" onClick={() => { const next = autoSegments.filter((_, i) => i !== index); setAutoSegments(next); if (next.length) { setStart(next[0].start); setEnd(next[0].end); } }}>Remove</button></div>)}<small>Adjust clip start/end or remove cuts. Export joins selected clips chronologically.</small></div>}
           {analysisResult && <div className="reel-analysis-card"><strong>Automatic analysis report</strong><span>{analysisResult.sceneChanges} visual scene changes</span><span>{analysisResult.beatMarkers.length} audio rhythm peaks</span><span>{analysisResult.segments.length} timeline sections mapped</span><span>Suggested trim: {formatTime(analysisResult.suggestedStart)} – {formatTime(analysisResult.suggestedEnd)}</span><button type="button" className="reel-secondary" onClick={() => { setStart(analysisResult.suggestedStart); setEnd(analysisResult.suggestedEnd); setCaptionStart(analysisResult.suggestedStart); setCaptionEnd(analysisResult.suggestedEnd); if (videoRef.current) videoRef.current.currentTime = analysisResult.suggestedStart; setStatus("Suggested trim applied. Preview it before exporting."); }}>Apply suggested trim</button><small>Suggestion method: {analysisResult.suggestionMethod}. This is a timeline heuristic, not semantic AI highlight detection. Visual changes and audio energy are analyzed; speech-to-text captions and semantic AI editing are not enabled.</small></div>}
           <button className="reel-export" type="button" onClick={exportReel} disabled={!videoUrl || videoLoading || busy}>{busy ? `Exporting… ${progress}%` : "2. Export video"}</button>
           {busy && <><progress className="reel-progress" max="100" value={progress} aria-label="Export progress" /><button type="button" className="reel-secondary reel-cancel-export" onClick={() => { exportCancelledRef.current = true; const recorder = recorderRef.current; if (recorder && recorder.state !== "inactive") recorder.stop(); else { setBusy(false); setProgress(0); setStatus("Export cancelled."); } }}>■ Stop export</button></>}
