@@ -573,7 +573,7 @@ export default function ReelEditor() {
       <div className="reel-heading">
         <span className="reel-kicker">GetAutoReel CREATOR TOOLS · BETA</span>
         <h2>Make a Reel</h2>
-        <p>Choose a video, review the preview, then export. No setup required.</p>
+        <p>Upload once. We’ll automatically turn it into a ready-to-share reel—then preview and save.</p>
       </div>
       <div className="reel-workspace">
         <div className="reel-preview-panel">
@@ -607,7 +607,7 @@ export default function ReelEditor() {
           </div>}
         </div>
         <div className="reel-controls-panel">
-          <div className="reel-simple-intro"><strong>Get started in 3 easy steps</strong><ol><li>Choose your video.</li><li>Review the preview.</li><li>Export and save your video.</li></ol><small>Your files are processed on this device.</small></div>
+          <div className="reel-simple-intro"><strong>Just 2 steps</strong><ol><li>Upload your video.</li><li>Tap <b>Create my Reel</b>, preview it, then save.</li></ol><small>No editing skills or setup needed. Your video stays on this device.</small></div>
           <div className="reel-step"><span>01</span><div><h3>Choose your video</h3><p>Select a video from your device.</p></div></div>
           <label className={`reel-upload ${dragOver ? "is-dragging" : ""}`} onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={(e) => { e.preventDefault(); setDragOver(false); loadVideo(e.dataTransfer.files?.[0]); }}>
             <input type="file" accept="video/*" onChange={(e) => { loadVideo(e.target.files?.[0]); e.target.value = ""; }} />
@@ -615,8 +615,8 @@ export default function ReelEditor() {
           </label>
           {videoName && <div className="reel-file-meta"><span>▣</span><span title={videoName}>{videoName} · {(videoSize / (1024 * 1024)).toFixed(1)} MB{videoDimensions ? ` · ${videoDimensions}` : ""}</span><button type="button" onClick={removeVideo}>Remove</button></div>}
           {videoLoading && <p className="reel-loading" role="status"><span className="reel-spinner" /> Preparing video preview… Large 4K files may take longer on mobile.</p>}
-          <details className="reel-advanced"><summary>Optional settings · Video, captions, music</summary>
-          {videoUrl && <div className="reel-step"><span>02</span><div><h3>Trim video</h3><p>Adjust only if you want to trim the clip.</p></div></div>}
+          <details className="reel-advanced"><summary>Advanced options (optional) · Trim, format, captions & music</summary>
+          {videoUrl && <div className="reel-step"><span>02</span><div><h3>Fine-tune (optional)</h3><p>Most people can skip this. Change trim, format, captions or music if needed.</p></div></div>}
           {videoUrl && autoSegments.length <= 1 && <div className="reel-trim">
             <label>Start <b>{formatTime(start)}</b><input type="range" min="0" max={Math.max(duration, 0.1)} step="0.1" value={start} onChange={(e) => { const v = Number(e.target.value); setStart(Math.min(v, Math.max(0, end - 0.2))); }} /></label>
             <label>End <b>{formatTime(end)}</b><input type="range" min="0" max={Math.max(duration, 0.1)} step="0.1" value={end} onChange={(e) => setEnd(Math.max(Number(e.target.value), start + 0.2))} /></label>
@@ -658,13 +658,13 @@ export default function ReelEditor() {
           <label className="reel-audio-upload"><input type="file" accept="audio/*" onChange={(e) => loadMusic(e.target.files?.[0])} />♫ {musicUrl ? "Music added · change track" : "Add music track (export)"}</label>
           {musicUrl && <><label className="reel-volume">Export music volume <b>{musicVolume}%</b><input type="range" min="0" max="100" value={musicVolume} onChange={(e) => setMusicVolume(Number(e.target.value))} /></label><button type="button" className="reel-secondary" onClick={() => { setMusicUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return ""; }); setStatus("Background music removed."); }}>Remove music track</button></>}
           </details>
-          <button className="reel-export reel-auto-create" type="button" onClick={() => runAutoAnalysis({ autoApply: true })} disabled={!videoUrl || videoLoading || analyzing || busy}>{analyzing ? `Creating reel… ${analysisProgress}%` : "✨ Auto-create Reel"}</button>
-          <p className="reel-caption-help">Analyzes visual changes and audio energy, applies a suggested trim, vertical framing and creator-style look. Review before export; semantic AI highlights and speech captions are not enabled.</p>
-          <button className="reel-export reel-analyze" type="button" onClick={() => runAutoAnalysis()} disabled={!videoUrl || videoLoading || analyzing || busy}>{analyzing ? `Analyzing… ${analysisProgress}%` : "Optional: Check video & audio"}</button>
+          <button className="reel-export reel-auto-create" type="button" onClick={() => runAutoAnalysis({ autoApply: true })} disabled={!videoUrl || videoLoading || analyzing || busy}>{analyzing ? `Creating your Reel… ${analysisProgress}%` : "✨ Create my Reel"}</button>
+          <p className="reel-caption-help">One tap automatically selects cuts, applies vertical framing and an enhanced look. Preview before saving.</p>
+          <button className="reel-export reel-analyze" type="button" onClick={() => runAutoAnalysis()} disabled={!videoUrl || videoLoading || analyzing || busy}>{analyzing ? `Checking… ${analysisProgress}%` : "Check video & audio"}</button>
           {analyzing && <progress className="reel-progress" max="100" value={analysisProgress} aria-label="Analysis progress" />}
           {autoSegments.length > 1 && <div className="reel-analysis-card reel-montage-editor"><strong>Auto Reel montage · {autoSegments.length} cuts</strong>{autoSegments.map((segment, index) => <div className="reel-montage-cut" key={`${index}-${segment.start}`}><span>Clip {index + 1}</span><label>Start <input type="number" min="0" max={Math.max(0, segment.end - 0.3)} step="0.1" value={segment.start.toFixed(1)} onChange={(e) => { const next = updateMontageSegment(autoSegments, index, "start", e.target.value, duration); setAutoSegments(next); if (next.length) { setStart(next[0].start); setEnd(next[0].end); } }} /></label><label>End <input type="number" min={segment.start + 0.3} max={duration} step="0.1" value={segment.end.toFixed(1)} onChange={(e) => { const next = updateMontageSegment(autoSegments, index, "end", e.target.value, duration); setAutoSegments(next); if (next.length) { setStart(next[0].start); setEnd(next[0].end); } }} /></label>{analysisResult?.beatMarkers?.length > 0 && <button type="button" className="reel-secondary" onClick={() => { const nearest = analysisResult.beatMarkers.reduce((best, beat) => Math.abs(beat - segment.start) < Math.abs(best - segment.start) ? beat : best, analysisResult.beatMarkers[0]); setAutoSegments((items) => items.map((item, i) => i === index ? { ...item, start: Math.max(0, Math.min(nearest, item.end - 0.3)) } : item)); }}>Snap start to beat</button>}<button type="button" className="reel-secondary" onClick={() => { const player = videoRef.current; if (player) { setStart(segment.start); setEnd(segment.end); setCurrentTime(segment.start); player.currentTime = segment.start; player.playbackRate = Number(playbackSpeed); player.play().catch(() => {}); setStatus(`Previewing montage cut ${index + 1}. Export will still include all selected cuts.`); } }}>Preview cut</button><button type="button" className="reel-secondary" onClick={() => { const next = autoSegments.filter((_, i) => i !== index); setAutoSegments(next); if (next.length) { setStart(next[0].start); setEnd(next[0].end); } }}>Remove</button></div>)}<small>Adjust clip start/end or remove cuts. Export joins selected clips chronologically.</small></div>}
           {analysisResult && <div className="reel-analysis-card"><strong>Automatic analysis report</strong><span>{analysisResult.sceneChanges} visual scene changes</span><span>{analysisResult.beatMarkers.length} audio rhythm peaks</span><span>{analysisResult.segments.length} timeline sections mapped</span><span>Suggested trim: {formatTime(analysisResult.suggestedStart)} – {formatTime(analysisResult.suggestedEnd)}</span><button type="button" className="reel-secondary" onClick={() => { setStart(analysisResult.suggestedStart); setEnd(analysisResult.suggestedEnd); setCaptionStart(analysisResult.suggestedStart); setCaptionEnd(analysisResult.suggestedEnd); if (videoRef.current) videoRef.current.currentTime = analysisResult.suggestedStart; setStatus("Suggested trim applied. Preview it before exporting."); }}>Apply suggested trim</button><small>Suggestion method: {analysisResult.suggestionMethod}. This is a timeline heuristic, not semantic AI highlight detection. Visual changes and audio energy are analyzed; speech-to-text captions and semantic AI editing are not enabled.</small></div>}
-          <button className="reel-export" type="button" onClick={exportReel} disabled={!videoUrl || videoLoading || busy}>{busy ? `Exporting… ${progress}%` : "2. Export video"}</button>
+          <button className="reel-export" type="button" onClick={exportReel} disabled={!videoUrl || videoLoading || busy}>{busy ? `Preparing your Reel… ${progress}%` : "Export & prepare download"}</button>
           {busy && <><progress className="reel-progress" max="100" value={progress} aria-label="Export progress" /><button type="button" className="reel-secondary reel-cancel-export" onClick={() => { exportCancelledRef.current = true; const recorder = recorderRef.current; if (recorder && recorder.state !== "inactive") recorder.stop(); else { setBusy(false); setProgress(0); setStatus("Export cancelled."); } }}>■ Stop export</button></>}
           {pendingDownload && <div className="reel-export-preview"><strong>Review your edited reel before saving</strong><video key={pendingDownload.url} src={pendingDownload.url} controls playsInline preload="metadata" /><button type="button" className="reel-secondary" onClick={() => {
             const link = document.createElement("a");
@@ -679,7 +679,7 @@ export default function ReelEditor() {
           }}>↓ Download edited reel</button></div>}
           <p className="reel-export-format">Your exported file includes the selected framing, color filter, captions, speed and audio settings. Default preset: original dimensions, original framing and no color filter. The browser re-encodes exported video, so a small quality difference may still occur.</p>
           <p className="reel-status" role="status">{status || "Your files are processed locally in this browser."}</p>
-          <p className="reel-note">Important: Automatic AI editing, song-synced captions, smart cuts and photo selection are not active yet. This version exports the settings you choose; it does not create a complete AI-edited reel automatically.</p>
+          <p className="reel-note">Note: Reel creation currently uses on-device scene and audio analysis heuristics—not semantic AI highlights or speech-to-text captions. We’re improving automatic editing.</p>
         </div>
       </div>
     </section>
