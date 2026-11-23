@@ -15,7 +15,7 @@ export function normalizeMontageSegments(segments, duration) {
       const end = clamp(orderedEnd, start + MIN_SEGMENT_LENGTH, duration);
       return { start: Number(start.toFixed(2)), end: Number(end.toFixed(2)) };
     })
-    .filter((segment) => segment.end - segment.start >= MIN_SEGMENT_LENGTH)
+    .filter((segment) => segment.end - segment.start >= MIN_SEGMENT_LENGTH - 1e-6)
     .sort((a, b) => a.start - b.start || a.end - b.end);
 }
 
