@@ -634,6 +634,15 @@ export default function ReelEditor() {
           <div className="reel-field"><label htmlFor="reel-subtitles">Import timed subtitles (SRT / VTT)</label><input id="reel-subtitles" type="file" accept=".srt,.vtt" onChange={(e) => { loadSubtitles(e.target.files?.[0]); e.target.value = ""; }} /></div>
           {subtitleName && <div className="reel-file-meta"><span>CC</span><span title={subtitleName}>{subtitleName} · {subtitles.length} cues</span><button type="button" onClick={() => { setSubtitles([]); setSubtitleName(""); }}>Remove</button></div>}
           <label className="reel-caption-toggle"><input type="checkbox" checked={captionEnabled} onChange={(e) => setCaptionEnabled(e.target.checked)} /> Show caption on video</label>
+          <div className="reel-caption-presets" aria-label="Quick caption templates">
+            <span>Quick text templates</span>
+            {[
+              { label: "Hook", text: "Wait for it… 👀" },
+              { label: "Story", text: "A moment worth remembering ✨" },
+              { label: "CTA", text: "Follow for more 💫" },
+              { label: "No text", text: "" },
+            ].map((preset) => <button key={preset.label} type="button" className="reel-secondary" onClick={() => { setCaption(preset.text); setCaptionEnabled(Boolean(preset.text)); setCaptionStart(start); setCaptionEnd(end || duration); setStatus(preset.text ? `“${preset.label}” caption template applied. Edit the wording before export.` : "Caption text cleared."); }}>{preset.label}</button>)}
+          </div>
           <div className="reel-field"><label htmlFor="reel-caption">On-screen text / caption (burned into video)</label><textarea id="reel-caption" rows="3" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Type your caption here. It will appear on the video preview and exported reel…" /></div>
           <p className="reel-caption-help">Caption preview appears on the video. During export it is rendered into every matching frame, not added as a separate text file.</p>
           {videoUrl && <div className="reel-caption-timing">
