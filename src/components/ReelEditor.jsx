@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./ReelEditor.css";
-import { analyzeReelMedia } from "../lib/reelAnalysis";
+import { analyzeReelMedia, chooseSuggestedSegment } from "../lib/reelAnalysis";
 import { parseSubtitleText } from "../lib/subtitleParser";
 import { normalizeMontageSegments, updateMontageSegment } from "../lib/montageSegments";
 
@@ -18,6 +18,7 @@ export default function ReelEditor() {
   const recorderRef = useRef(null);
   const chunksRef = useRef([]);
   const exportCancelledRef = useRef(false);
+  const analysisAbortRef = useRef(null);
   const audioContextRef = useRef(null);
   const videoAudioSourceRef = useRef(null);
   const videoAudioGainRef = useRef(null);
@@ -83,6 +84,14 @@ export default function ReelEditor() {
 
   const loadVideo = (file) => {
     if (!file) return;
+    if (busy) {
+      setStatus("Stop the current export before replacing the video.");
+      return;
+    }
+    if (analyzing) {
+      setStatus("Stop video analysis before replacing the video.");
+      return;
+    }
     if (!file.type.startsWith("video/")) {
       setStatus("Please choose a valid video file.");
       return;
@@ -153,6 +162,14 @@ export default function ReelEditor() {
   };
 
   const removeVideo = () => {
+    if (busy) {
+      setStatus("Stop the current export before removing the video.");
+      return;
+    }
+    if (analyzing) {
+      setStatus("Stop video analysis before removing the video.");
+      return;
+    }
     if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.removeAttribute("src");
@@ -200,21 +217,18 @@ export default function ReelEditor() {
   const runAutoAnalysis = async ({ autoApply = false } = {}) => {
     const video = videoRef.current;
     if (!video || videoLoading || analyzing || !videoUrl) return;
+    const controller = new AbortController();
+    analysisAbortRef.current = controller;
     setAnalyzing(true);
     setAnalysisProgress(0);
     setAnalysisResult(null);
     setStatus("Analyzing video scenes and audio rhythm on this device…");
     try {
-      const result = await analyzeReelMedia({ video, file: videoFileRef.current, onProgress: setAnalysisProgress });
+      const result = await analyzeReelMedia({ video, file: videoFileRef.current, signal: controller.signal, onProgress: setAnalysisProgress });
       // Suggest a short, usable section from the analyzed timeline. This is a
       // transparent heuristic—not semantic AI highlight detection.
       const targetLength = Math.min(20, Math.max(8, duration || 12));
-      const eligible = result.segments.filter((segment) => segment.end - segment.start >= 4);
-      const chosen = eligible.reduce((best, segment) => {
-        const length = segment.end - segment.start;
-        const score = Math.abs(length - targetLength);
-        return !best || score < best.score ? { segment, score } : best;
-      }, null)?.segment;
+      const chosen = chooseSuggestedSegment(result.segments, targetLength);
       const suggestedStart = chosen ? chosen.start : Math.max(0, Math.min(duration - targetLength, duration * 0.15));
       const suggestedEnd = chosen ? Math.min(chosen.end, suggestedStart + targetLength) : Math.min(duration, suggestedStart + targetLength);
       result.suggestedStart = Number(suggestedStart.toFixed(2));
@@ -264,8 +278,9 @@ export default function ReelEditor() {
         setStatus(`Analysis complete: ${result.sceneChanges} scene changes and ${result.beatMarkers.length} audio rhythm peaks detected. A suggested trim is ready to review.`);
       }
     } catch (error) {
-      setStatus(error?.message || "Automatic analysis failed. Try a shorter MP4 video.");
+      setStatus(error?.name === "AbortError" ? "Analysis cancelled. You can continue editing." : error?.message || "Automatic analysis failed. Try a shorter MP4 video.");
     } finally {
+      if (analysisAbortRef.current === controller) analysisAbortRef.current = null;
       setAnalyzing(false);
     }
   };
@@ -385,6 +400,7 @@ export default function ReelEditor() {
       return;
     }
     exportCancelledRef.current = false;
+    let cleanupExport = () => {};
     setBusy(true);
     setProgress(0);
     setStatus("Preparing your reel…");
@@ -414,6 +430,21 @@ export default function ReelEditor() {
       let audioDestination;
       let musicSource;
       let musicGain;
+      let exportCleanupDone = false;
+      cleanupExport = () => {
+        if (exportCleanupDone) return;
+        exportCleanupDone = true;
+        music?.pause();
+        musicSource?.disconnect();
+        musicGain?.disconnect();
+        if (audioDestination) {
+          try { videoAudioGainRef.current?.disconnect(audioDestination); } catch {}
+        }
+        output.getTracks().forEach((track) => track.stop());
+        canvasStream.getTracks().forEach((track) => track.stop());
+        video.pause();
+        if (musicElementRef.current === music) musicElementRef.current = null;
+      };
       if (videoVolume > 0 || musicUrl) {
         audioContext ||= new AudioContext();
         audioContextRef.current = audioContext;
@@ -468,20 +499,16 @@ export default function ReelEditor() {
       let watchdogTimer = null;
       let exportFailed = false;
       let exportCompleted = false;
-      const cleanupExport = () => {
+      const stopRenderLoop = () => {
         if (renderFrameId !== null) cancelAnimationFrame(renderFrameId);
         if (watchdogTimer !== null) window.clearInterval(watchdogTimer);
         renderFrameId = null;
         watchdogTimer = null;
-        music?.pause();
-        musicSource?.disconnect();
-        musicGain?.disconnect();
-        if (audioDestination) {
-          try { videoAudioGainRef.current?.disconnect(audioDestination); } catch {}
-        }
-        output.getTracks().forEach((track) => track.stop());
-        canvasStream.getTracks().forEach((track) => track.stop());
-        video.pause();
+      };
+      const originalCleanupExport = cleanupExport;
+      cleanupExport = () => {
+        stopRenderLoop();
+        originalCleanupExport();
       };
       recorder.onerror = () => {
         exportFailed = true;
@@ -562,6 +589,7 @@ export default function ReelEditor() {
       if (recorderRef.current?.state && recorderRef.current.state !== "inactive") {
         try { recorderRef.current.stop(); } catch {}
       }
+      cleanupExport();
       setBusy(false);
       setProgress(0);
       setStatus(error?.message || "Export failed. Please try again in Chrome.");
@@ -658,7 +686,7 @@ export default function ReelEditor() {
           <label className="reel-audio-upload"><input type="file" accept="audio/*" onChange={(e) => loadMusic(e.target.files?.[0])} />♫ {musicUrl ? "Music added · change track" : "Add music track (export)"}</label>
           {musicUrl && <><label className="reel-volume">Export music volume <b>{musicVolume}%</b><input type="range" min="0" max="100" value={musicVolume} onChange={(e) => setMusicVolume(Number(e.target.value))} /></label><button type="button" className="reel-secondary" onClick={() => { setMusicUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return ""; }); setStatus("Background music removed."); }}>Remove music track</button></>}
           <button className="reel-secondary reel-analyze" type="button" onClick={() => runAutoAnalysis()} disabled={!videoUrl || videoLoading || analyzing || busy}>{analyzing ? `Checking… ${analysisProgress}%` : "Check video & audio"}</button>
-          {analyzing && <progress className="reel-progress" max="100" value={analysisProgress} aria-label="Analysis progress" />}
+          {analyzing && <><progress className="reel-progress" max="100" value={analysisProgress} aria-label="Analysis progress" /><button type="button" className="reel-secondary reel-cancel-analysis" onClick={() => analysisAbortRef.current?.abort()}>■ Stop analysis</button></>}
           </details>
           <button className="reel-export reel-auto-create" type="button" onClick={() => runAutoAnalysis({ autoApply: true })} disabled={!videoUrl || videoLoading || analyzing || busy}>{analyzing ? `Creating your Reel… ${analysisProgress}%` : "✨ Create my Reel"}</button>
           <p className="reel-caption-help">One tap automatically selects cuts, applies vertical framing and an enhanced look. Preview before saving.</p>
