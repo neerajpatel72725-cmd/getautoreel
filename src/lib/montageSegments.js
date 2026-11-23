@@ -7,8 +7,12 @@ export function normalizeMontageSegments(segments, duration) {
   return segments
     .filter((segment) => Number.isFinite(Number(segment?.start)) && Number.isFinite(Number(segment?.end)))
     .map((segment) => {
-      const start = clamp(Number(segment.start), 0, duration - MIN_SEGMENT_LENGTH);
-      const end = clamp(Number(segment.end), start + MIN_SEGMENT_LENGTH, duration);
+      const rawStart = Number(segment.start);
+      const rawEnd = Number(segment.end);
+      const orderedStart = Math.min(rawStart, rawEnd);
+      const orderedEnd = Math.max(rawStart, rawEnd);
+      const start = clamp(orderedStart, 0, duration - MIN_SEGMENT_LENGTH);
+      const end = clamp(orderedEnd, start + MIN_SEGMENT_LENGTH, duration);
       return { start: Number(start.toFixed(2)), end: Number(end.toFixed(2)) };
     })
     .filter((segment) => segment.end - segment.start >= MIN_SEGMENT_LENGTH)
