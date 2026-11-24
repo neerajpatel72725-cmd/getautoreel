@@ -177,35 +177,39 @@
 }
 
 
-/* GetAutoReel Studio dashboard — inspired by creator-app project launch screens. */
-.reel-studio-dashboard{position:relative;overflow:hidden;margin:0 0 22px;padding:clamp(18px,3vw,28px);border:1px solid #283b55;border-radius:24px;background:radial-gradient(ellipse at 90% 0%,#174f59 0,transparent 36%),linear-gradient(135deg,#071b2c 0%,#101a31 55%,#17243b 100%);color:#f8fbff;box-shadow:0 18px 48px #0c1b3026}
-.reel-studio-topline{display:flex;align-items:flex-start;gap:13px;margin-bottom:22px}
-.reel-studio-mark{display:grid;place-items:center;flex:0 0 43px;width:43px;height:43px;border:1px solid #62e4d14a;border-radius:14px;background:#1ac9b51b;color:#75f1df;font-size:25px}
+
+/* Unified GetAutoReel glass studio: bright magical purple palette across the site. */
+.reel-studio-dashboard{position:relative;isolation:isolate;overflow:hidden;margin:0 0 18px;padding:clamp(19px,3vw,30px);border:1px solid #ffffffb8;border-radius:25px;background:linear-gradient(128deg,#30256f 0%,#5945b8 48%,#8b69d9 100%);color:#fff;box-shadow:0 18px 46px #5141a52b,inset 0 1px 0 #ffffff65}
+.reel-studio-dashboard:before,.reel-studio-dashboard:after{content:"";position:absolute;z-index:-1;pointer-events:none;border-radius:50%;filter:blur(1px)}
+.reel-studio-dashboard:before{width:260px;height:260px;right:-60px;top:-150px;background:#f6b9ff66;box-shadow:0 0 75px 35px #e5b8ff33}
+.reel-studio-dashboard:after{width:190px;height:190px;left:35%;bottom:-155px;background:#91e8ff55;box-shadow:0 0 75px 35px #a6a0ff33}
+.reel-studio-topline{display:flex;align-items:flex-start;gap:13px;margin-bottom:20px}
+.reel-studio-mark{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;border:1px solid #ffffff75;border-radius:15px;background:linear-gradient(145deg,#ffffff52,#ffffff12);box-shadow:inset 0 1px 0 #ffffff9c,0 8px 20px #20145c35;color:#fff;font-size:25px;backdrop-filter:blur(16px)}
 .reel-studio-topline>div{min-width:0;flex:1}
-.reel-studio-eyebrow{color:#77dfd0;font-size:10px;font-weight:800;letter-spacing:1.8px}
+.reel-studio-eyebrow{color:#f3ddff;font-size:10px;font-weight:850;letter-spacing:1.8px}
 .reel-studio-topline h2{margin:5px 0 4px;color:#fff;font-size:clamp(21px,3.2vw,29px);letter-spacing:-.8px}
-.reel-studio-topline p{margin:0;color:#b8c6d7;font-size:12px}
-.reel-studio-beta{padding:6px 9px;border:1px solid #ffffff25;border-radius:99px;color:#b8c6d7;font-size:9px;font-weight:800;letter-spacing:1px}
+.reel-studio-topline p{margin:0;color:#e8e0ff;font-size:12px}
+.reel-studio-beta{padding:6px 9px;border:1px solid #ffffff55;border-radius:99px;background:#ffffff1b;color:#fff;font-size:9px;font-weight:800;letter-spacing:1px;backdrop-filter:blur(12px)}
 .reel-studio-tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
-.reel-studio-tool{position:relative;display:flex;min-width:0;min-height:132px;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:7px;padding:15px;border:1px solid #ffffff18;border-radius:17px;background:linear-gradient(145deg,#ffffff12,#ffffff08);color:#fff;text-align:left;transition:transform .2s,border-color .2s,background .2s}
-.reel-studio-tool:hover{transform:translateY(-3px);border-color:#6be4d18c;background:#ffffff17}
-.reel-tool-icon{display:grid;place-items:center;width:40px;height:40px;border:1px solid #74e8d52e;border-radius:13px;background:#25c9b51c;color:#8df2e3;font-size:21px}
+.reel-studio-tool{position:relative;display:flex;min-width:0;min-height:128px;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:7px;padding:14px;border:1px solid #ffffff8c;border-radius:17px;background:linear-gradient(145deg,#ffffff4b,#ffffff1c);box-shadow:inset 0 1px 0 #ffffffa6,0 7px 18px #28165b25;color:#fff;text-align:left;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);transition:transform .2s,border-color .2s,background .2s}
+.reel-studio-tool:hover{transform:translateY(-3px);border-color:#fff;background:linear-gradient(145deg,#ffffff66,#ffffff2b)}
+.reel-tool-icon{display:grid;place-items:center;width:40px;height:40px;border:1px solid #ffffff82;border-radius:13px;background:linear-gradient(145deg,#ffffff65,#ffffff20);box-shadow:inset 0 1px 0 #ffffffa8;color:#fff;font-size:21px}
 .reel-studio-tool strong{font-size:13px;line-height:1.25}
-.reel-studio-tool small{color:#b8c6d7;font-size:10px;line-height:1.45}
-.reel-tool-auto{border-color:#35d8c48a;background:linear-gradient(145deg,#0e9e91,#087a83)}
-.reel-tool-auto .reel-tool-icon{border-color:#ffffff35;background:#ffffff20;color:#fff}
-.reel-tool-auto small{color:#e0fffb}
-.reel-tool-tag{position:absolute;top:12px;right:11px;padding:4px 6px;border-radius:6px;background:#ffffff20;color:#e7fffb;font-size:8px;font-weight:900;letter-spacing:.6px}
-.reel-studio-new-project{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:13px;padding:14px 15px;border:1px solid #ffffff1c;border-radius:16px;background:#ffffff0b}
-.reel-studio-new-project>div{display:flex;align-items:center;gap:11px;min-width:0}
-.reel-new-project-icon{display:grid;place-items:center;flex:0 0 39px;width:39px;height:39px;border-radius:12px;background:#fff;color:#10263a;font-size:24px;font-weight:700}
-.reel-studio-new-project>div>div{display:grid;gap:3px}
-.reel-studio-new-project strong{color:#fff;font-size:12px}
-.reel-studio-new-project small{color:#b8c6d7;font-size:10px;line-height:1.4}
-.reel-studio-new-project>button{flex:0 0 auto;min-height:42px;padding:10px 16px;border:0;border-radius:11px;background:linear-gradient(100deg,#45e0ca,#36a7ff);color:#06263a;font-size:12px;font-weight:900;box-shadow:0 7px 20px #23b9bd35}
-.reel-studio-new-project>button:hover{transform:translateY(-2px);filter:brightness(1.06)}
-.reel-studio-new-project>button:disabled,.reel-studio-tool:disabled{opacity:.55;cursor:not-allowed;transform:none}
-.reel-studio-trust{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:13px;color:#a9bdcc;font-size:9px}
-.reel-studio-trust span:first-child{color:#8ce6d9}
-@media(max-width:650px){.reel-studio-tools{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.reel-studio-tool{min-height:118px;padding:13px}.reel-studio-new-project{align-items:stretch;flex-direction:column}.reel-studio-new-project>button{width:100%;min-height:48px}.reel-studio-dashboard{border-radius:19px}}
-@media(max-width:360px){.reel-studio-tool{min-height:112px;padding:11px}.reel-tool-icon{width:36px;height:36px}}
+.reel-studio-tool small{color:#f1eaff;font-size:10px;line-height:1.45}
+.reel-tool-auto{border-color:#fff;background:linear-gradient(145deg,#ffffff5c,#f2dfff2e);box-shadow:inset 0 1px 0 #fff,0 8px 22px #25135c35}
+.reel-tool-auto .reel-tool-icon{background:#ffffff42;color:#fff}
+.reel-tool-tag{position:absolute;top:12px;right:10px;padding:4px 6px;border:1px solid #ffffff55;border-radius:6px;background:#ffffff24;color:#fff;font-size:8px;font-weight:900;letter-spacing:.6px}
+.reel-studio-tool:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.reel-studio-trust{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px;color:#e8e0ff;font-size:9px}
+.reel-studio-trust span:first-child{color:#fff}
+.reel-editor{--purple:#6558e8;--purple-dark:#5044ce}
+.reel-upload{border-color:#a79af5;background:linear-gradient(135deg,#f5f1ff,#fff 72%);box-shadow:inset 0 1px 0 #fff,0 8px 20px #6558e810}
+.reel-upload:hover{border-color:#6558e8;background:linear-gradient(135deg,#eee8ff,#fff)}
+.reel-quick-captions{border-color:#ded8fb;background:linear-gradient(145deg,#f5f1ff,#fff 80%)}
+.reel-advanced{border-color:#ded8fb;background:rgba(255,255,255,.92)}
+.reel-advanced>summary{color:#5146bd}
+.reel-caption-presets .reel-secondary{border-color:#ded8fb;background:#fff;color:#5146bd}
+.reel-export,.reel-auto-create{background:linear-gradient(105deg,#6558e8,#8c69df);box-shadow:0 8px 22px #6558e83b}
+.reel-export:hover,.reel-auto-create:hover{background:linear-gradient(105deg,#5044ce,#7656ca)}
+@media(max-width:650px){.reel-studio-tools{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.reel-studio-tool{min-height:112px;padding:12px}.reel-studio-dashboard{border-radius:20px}}
+@media(max-width:360px){.reel-studio-tool{min-height:108px;padding:10px}.reel-tool-icon{width:36px;height:36px}}
