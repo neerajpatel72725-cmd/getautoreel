@@ -1170,3 +1170,110 @@ input,select,textarea,.search-wrapper input,.search-wrapper select { background:
  @keyframes magic-breathe { 0%,100% { transform:translateY(0) scale(1); } 50% { transform:translateY(-8px) scale(1.025); } }
  @keyframes magic-turn { to { transform:rotate(360deg); } }
 }
+
+
+/* Aurora glass palette — deep teal, opal and champagne */
+:root {
+  color-scheme: dark;
+  --ink:#f1fbfa;
+  --muted:#b8d4d1;
+  --line:rgba(190,239,229,.2);
+  --purple:#9af0dc;
+  --purple-dark:#62d7c2;
+  --surface:#102f35;
+}
+html,body { background:#071d24; color:#effbf9; }
+body {
+  background:
+    radial-gradient(ellipse at 8% 7%,rgba(36,190,166,.25),transparent 34rem),
+    radial-gradient(ellipse at 88% 22%,rgba(85,139,194,.23),transparent 32rem),
+    radial-gradient(ellipse at 50% 90%,rgba(193,160,111,.11),transparent 38rem),
+    linear-gradient(145deg,#071d24 0%,#0d3038 46%,#102b3b 100%);
+  background-attachment:scroll;
+}
+.navbar {
+  background:rgba(7,29,36,.76);
+  border-bottom:1px solid rgba(184,239,228,.18);
+  box-shadow:0 8px 32px rgba(0,10,15,.22);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+.brand { color:#eafffa; text-shadow:0 0 22px rgba(111,231,206,.25); }
+.menu a { color:#b8d7d2; }.menu a:hover { color:#a8f3e2; }
+.hero.magic-hero {
+ background:
+  radial-gradient(ellipse at 75% 42%,rgba(116,226,204,.25),transparent 19rem),
+  radial-gradient(ellipse at 16% 4%,rgba(111,160,206,.24),transparent 22rem),
+  linear-gradient(125deg,rgba(16,67,75,.88),rgba(14,48,66,.91) 55%,rgba(29,77,77,.9));
+ border:1px solid rgba(192,244,231,.3);
+ box-shadow:0 28px 80px rgba(0,10,17,.35),inset 0 1px rgba(255,255,255,.18);
+}
+.magic-kicker,.magic-hero h1,.magic-hero h1 span,.magic-hero h1 em { color:#f2fffb; }
+.magic-hero h1 span { color:#9af0dc; }
+.magic-hero h1 em { color:#f2d8a5; text-shadow:0 0 32px rgba(242,216,165,.3); }
+.magic-kicker-dot { background:#9af0dc; box-shadow:0 0 16px #72e8d0; }
+.magic-rule { background:linear-gradient(90deg,#9af0dc,#f2d8a5,transparent); }
+.magic-orb {
+ background:radial-gradient(circle at 30% 23%,#fff5d9 0%,#a7f2df 15%,#4bbcae 38%,#1c7180 69%,#10384b 100%);
+ box-shadow:inset -18px -22px 45px rgba(0,22,32,.5),inset 12px 12px 28px rgba(255,255,255,.4),0 0 35px rgba(130,239,213,.55),0 0 95px rgba(78,181,194,.3);
+}
+.magic-orb-core,.magic-star { color:#fff5d9; text-shadow:0 0 20px rgba(255,245,217,.8),0 0 45px rgba(129,240,218,.65); }
+.magic-halo { border-color:rgba(180,242,227,.34); box-shadow:0 0 0 25px rgba(180,242,227,.045),0 0 0 58px rgba(180,242,227,.03),0 0 0 94px rgba(180,242,227,.02); }
+.magic-halo-two { border-color:rgba(242,216,165,.42); }
+.magic-float {
+ background:linear-gradient(135deg,rgba(222,255,247,.18),rgba(15,58,67,.58));
+ border-color:rgba(193,244,230,.3);
+ box-shadow:0 14px 35px rgba(0,12,18,.25),inset 0 1px rgba(255,255,255,.18);
+ backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+.magic-float>span,.category-icon,.creator-icon,.ai-icon { background:rgba(141,228,207,.15); color:#c4fff0; }
+.magic-float small { color:#b9e8dc; }
+.magic-cta,.btn,button.btn {
+ background:linear-gradient(120deg,#b8f5e4,#f2d8a5);
+ color:#12343a;
+ border:1px solid rgba(255,255,255,.36);
+ box-shadow:0 8px 26px rgba(55,176,154,.18),inset 0 1px rgba(255,255,255,.6);
+}
+.magic-cta:hover,.btn:hover,button.btn:hover { background:linear-gradient(120deg,#e1fff4,#ffe9bd); color:#092c32; }
+h1,h2,h3,h4,.section-heading h2,.section-heading p,p { color:#effbf9; }
+p,.section-heading p { color:#b8d4d1; }
+.eyebrow { color:#a9eddb; }
+.search-wrapper,.category-card,.category-item,.card,.tool-card,.creator-card,.ai-card,
+.empty-state,.closing-banner,.policy-content,.creator-preview,.guide-card {
+ color:#effbf9;
+ border:1px solid rgba(190,239,229,.18);
+ background:linear-gradient(145deg,rgba(31,83,87,.53),rgba(14,45,59,.63));
+ box-shadow:0 14px 38px rgba(0,13,20,.19),inset 0 1px rgba(255,255,255,.12);
+ backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+.category-card:hover,.category-item:hover,.card:hover,.tool-card:hover {
+ border-color:rgba(167,242,222,.5); box-shadow:0 18px 42px rgba(0,12,18,.25),0 0 24px rgba(91,207,183,.08);
+}
+.card .tool-header p,.tool-category,.description,.tool-card p,.creator-card li,
+.policy-content p,.policy-content li,.copyright,.guide-card > p,.guide-card li p { color:#bdd8d3; }
+.rating { background:rgba(242,216,165,.17); color:#f6dfad; }
+.type,.coming { background:rgba(143,226,207,.15); color:#bdf5e7; }
+input,select,textarea,.search-wrapper input,.search-wrapper select {
+ color:#f1fbfa; background:rgba(5,31,39,.54); border-color:rgba(190,239,229,.22);
+}
+input::placeholder,textarea::placeholder { color:#8eafaa; }
+input:focus,select:focus,textarea:focus { border-color:#9af0dc; box-shadow:0 0 0 3px rgba(154,240,220,.13); }
+.closing-banner { background:linear-gradient(120deg,rgba(22,91,91,.72),rgba(17,55,76,.82)); }
+.footer,footer,.footer h2 { color:#effbf9; border-color:rgba(190,239,229,.2); }
+.footer-links,.footer-links a { color:#b8d4d1; }
+.footer-links a:hover { color:#f2d8a5; }
+.legal-glass { margin:14px 0; padding:0; overflow:hidden; border-radius:18px; }
+.legal-glass summary { cursor:pointer; list-style:none; padding:20px 24px; color:#eafffa; font:700 17px Manrope,sans-serif; }
+.legal-glass summary::-webkit-details-marker { display:none; }
+.legal-glass summary::after { content:"＋"; float:right; color:#a9eddb; }
+.legal-glass[open] summary::after { content:"−"; }
+.legal-body { padding:0 24px 22px; }
+.legal-body h2 { display:none; }
+.legal-body h3 { margin-top:20px; color:#f2d8a5; }
+.legal-body a { color:#a9eddb; text-decoration:underline; text-underline-offset:3px; }
+.legal-body li { margin:8px 0; line-height:1.6; }
+.footer { margin:46px 0 16px; padding:26px 24px; border:1px solid rgba(190,239,229,.2); border-radius:20px; background:rgba(15,50,59,.45); backdrop-filter:blur(14px); }
+@media(max-width:700px) {
+ .navbar { background:rgba(7,29,36,.84); backdrop-filter:blur(14px); }
+ .search-wrapper,.category-card,.category-item,.card,.tool-card,.creator-card,.ai-card,.empty-state,.closing-banner,.policy-content,.creator-preview,.guide-card { backdrop-filter:blur(10px); }
+}
