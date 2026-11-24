@@ -119,6 +119,45 @@ export default function App() {
 
         <OurAITools />
 
+        <section id="about" className="closing-banner">
+          <span className="eyebrow">ABOUT THE PROJECT</span>
+          <h2>About GetAutoReel</h2>
+          <p>
+            GetAutoReel is a creator-focused website built to make short-form
+            video editing and creator resources easier to explore in one place.
+            It brings together a browser-based Reels Editor, a directory of
+            creator and AI tools, and practical guides about video formats,
+            editing workflow, captions, audio and content rights.
+          </p>
+          <p>
+            Our goal is to make video creation clearer and more approachable.
+            Editing results can vary by browser, device capability and the
+            media files being used. Users should preview exported videos and
+            make sure they have permission to use every video, image and audio
+            asset they publish.
+          </p>
+          <a href="#reel-editor" className="btn">Try the Reels Editor →</a>
+        </section>
+
+        <section id="contact" className="closing-banner">
+          <span className="eyebrow">HELP & FEEDBACK</span>
+          <h2>Contact & Support</h2>
+          <p>
+            If you find a website issue, a broken link or a problem using the
+            editor, you can send feedback through the GetAutoReel project
+            support page. Please do not include passwords, payment details or
+            private video files in a public report.
+          </p>
+          <a
+            href="https://github.com/neerajpatel72725-cmd/toolmint-ai/issues/new"
+            className="btn"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Report an issue →
+          </a>
+        </section>
+
         <section className="closing-banner">
           <span className="eyebrow">MAKE SOMETHING AMAZING</span>
           <h2>Your next great idea starts with AI.</h2>
