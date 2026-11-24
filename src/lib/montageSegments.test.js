@@ -20,6 +20,19 @@ test("keeps a cut at least 0.3 seconds long and within the video", () => {
   ]);
 });
 
+test("merges overlapping cuts so montage exports do not replay source footage", () => {
+  assert.deepEqual(normalizeMontageSegments([
+    { start: 5, end: 9 },
+    { start: 1, end: 4 },
+    { start: 3.5, end: 6 },
+    { start: 9, end: 10 },
+    { start: 12, end: 13 },
+  ], 15), [
+    { start: 1, end: 10 },
+    { start: 12, end: 13 },
+  ]);
+});
+
 test("ignores cleared or non-numeric input without corrupting segments", () => {
   const segments = [{ start: 1, end: 3 }, { start: 5, end: 7 }];
   assert.strictEqual(updateMontageSegment(segments, 0, "start", "", 10), segments);
@@ -35,5 +48,14 @@ test("editing a cut endpoint clamps it and keeps cuts ordered", () => {
   assert.deepEqual(updateMontageSegment(segments, 0, "end", 0.1, 10), [
     { start: 1, end: 1.3 },
     { start: 5, end: 7 },
+  ]);
+});
+
+test("editing a cut into another cut coalesces the duplicate range", () => {
+  assert.deepEqual(updateMontageSegment([
+    { start: 1, end: 3 },
+    { start: 5, end: 7 },
+  ], 0, "end", 5.5, 10), [
+    { start: 1, end: 7 },
   ]);
 });
