@@ -2,19 +2,20 @@ export default function Hero({ totalTools }) {
   return (
     <section className="hero reel-first-hero">
       <div className="hero-content">
-        <span className="hero-badge">GetAutoReel · VIDEO CREATOR</span>
-        <h1>Choose your video. Create your reel.</h1>
-        <p>Select a video, review your preview, and export when you’re ready. Advanced controls are available when you need them.</p>
+        <span className="hero-badge">✦ TOOLMINT AI · CREATOR STUDIO</span>
+        <h1>Turn your clips into stories worth sharing.</h1>
+        <p>One creative space for smarter video editing, creator tools and fresh ideas. Start with a video, make it yours, and export when it feels right.</p>
         <div className="hero-actions">
-          <a className="btn" href="#reel-editor">✦ Create your reel</a>
-          <a className="hero-secondary-btn" href="#reel-editor">How it works ↓</a>
+          <a className="btn" href="#reel-editor">✦ Start creating</a>
+          <a className="hero-secondary-btn" href="#tools">Explore AI tools ↓</a>
         </div>
         <div className="hero-stats">
-          <div className="stat"><h3>9:16</h3><span>Reels format</span></div>
-          <div className="stat"><h3>On device</h3><span>Local browser editing</span></div>
-          <div className="stat"><h3>{totalTools}+</h3><span>AI tools directory</span></div>
+          <div className="stat"><h3>One studio</h3><span>Your video workflow</span></div>
+          <div className="stat"><h3>On device</h3><span>Private browser editing</span></div>
+          <div className="stat"><h3>{totalTools}+</h3><span>Tools to discover</span></div>
         </div>
       </div>
+      <div className="hero-orbit" aria-hidden="true"><span>✦</span><i /><b /></div>
     </section>
   );
 }
