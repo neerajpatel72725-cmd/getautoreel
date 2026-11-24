@@ -1061,7 +1061,6 @@ input:focus,select:focus,textarea:focus { border-color:#fff; box-shadow:0 0 0 2p
 
 /* Keep motion cheap: no fixed backgrounds, backdrop filters, rotating layers,
    giant blur shadows, or blanket transitions that make scrolling feel sluggish. */
-*,*::before,*::after { scroll-behavior:auto !important; }
 button,a,.card,.tool-card,.category-card,.category-item {
   transition: transform 120ms ease, border-color 120ms ease, background-color 120ms ease;
 }
@@ -1078,4 +1077,10 @@ button:hover,a:hover,.card:hover,.tool-card:hover,.category-card:hover,.category
 }
 @media(max-width:700px) {
   .navbar { background:#6127ad; backdrop-filter:none; -webkit-backdrop-filter:none; }
+}
+
+/* Smooth anchor/section navigation without forcing costly animated effects */
+html { scroll-behavior: smooth !important; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
 }
