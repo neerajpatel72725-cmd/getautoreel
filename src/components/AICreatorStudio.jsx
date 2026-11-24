@@ -1,53 +1,32 @@
 export default function AICreatorStudio() {
   return (
     <section className="creator-studio">
-
-      <h2>🚀 AI Creator Studio</h2>
-
+      <h2>Creator Studio — planned tools</h2>
       <p>
-        Create professional AI thumbnails and posters in seconds.
+        These tools are not available yet. The working browser-based Reels
+        Editor is available above; thumbnail and poster generation are planned
+        for a future update.
       </p>
 
       <div className="creator-grid">
-
-        <div className="creator-card">
-          <div className="creator-icon">🎯</div>
-
+        <article className="creator-card">
+          <div className="creator-icon" aria-hidden="true">🎯</div>
           <h3>AI Thumbnail Generator</h3>
-
-          <ul>
-            <li>🎮 Gaming</li>
-            <li>📚 Education</li>
-            <li>💻 Tech</li>
-            <li>💰 Finance</li>
-            <li>📹 Vlog</li>
-          </ul>
-
-          <button className="btn">
-            Launch Soon
+          <p>Planned workflow for creating and refining video thumbnail concepts.</p>
+          <button className="btn" type="button" disabled aria-disabled="true">
+            Not available yet
           </button>
-        </div>
+        </article>
 
-        <div className="creator-card">
-          <div className="creator-icon">🎨</div>
-
+        <article className="creator-card">
+          <div className="creator-icon" aria-hidden="true">🎨</div>
           <h3>AI Poster Generator</h3>
-
-          <ul>
-            <li>🎬 Movie</li>
-            <li>🏢 Business</li>
-            <li>🎉 Festival</li>
-            <li>🛍 Product</li>
-            <li>📢 Event</li>
-          </ul>
-
-          <button className="btn">
-            Launch Soon
+          <p>Planned workflow for preparing poster concepts for creator projects.</p>
+          <button className="btn" type="button" disabled aria-disabled="true">
+            Not available yet
           </button>
-        </div>
-
+        </article>
       </div>
-
     </section>
   );
 }
