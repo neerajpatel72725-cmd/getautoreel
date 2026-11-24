@@ -15,11 +15,22 @@ export function chooseSuggestedSegment(segments, targetLength) {
   }, null)?.segment || null;
 }
 
-function seek(video, time, signal) {
+export function seekVideo(video, time, signal, options = {}) {
+  const {
+    timeoutMs = 5000,
+    timeoutMessage = "Video analysis timed out while seeking.",
+    errorMessage = "The browser could not decode a video frame.",
+  } = options;
   return new Promise((resolve, reject) => {
     throwIfAborted(signal);
-    if (Math.abs(video.currentTime - time) < 0.04) return resolve();
-    const timer = setTimeout(() => finish(new Error("Video analysis timed out while seeking.")), 5000);
+    if (!video || !Number.isFinite(time)) {
+      reject(new TypeError("A video element and finite seek time are required."));
+      return;
+    }
+    // A seek to the current timestamp does not emit another seeked event.
+    // Avoid waiting for an event that the browser will never dispatch.
+    if (Math.abs(video.currentTime - time) < 0.04 && !video.seeking) return resolve();
+    const timer = setTimeout(() => finish(new Error(timeoutMessage)), timeoutMs);
     const cleanup = () => {
       clearTimeout(timer);
       video.removeEventListener("seeked", done);
@@ -32,7 +43,7 @@ function seek(video, time, signal) {
       else resolve();
     };
     const done = () => finish();
-    const fail = () => finish(new Error("The browser could not decode a video frame."));
+    const fail = () => finish(new Error(errorMessage));
     const abort = () => {
       const error = new Error("Video analysis cancelled.");
       error.name = "AbortError";
@@ -127,7 +138,7 @@ export async function analyzeReelMedia({ video, file, signal, onProgress = () =>
     for (let t = 0; t < duration; t += sampleStep) times.push(t);
     for (let i = 0; i < times.length; i++) {
       throwIfAborted(signal);
-      await seek(video, times[i], signal);
+      await seekVideo(video, times[i], signal);
       if (video.readyState < 2) await new Promise(resolve => video.addEventListener("loadeddata", resolve, { once: true }));
       throwIfAborted(signal);
       const signature = frameSignature(video, canvas, context);
@@ -161,7 +172,7 @@ export async function analyzeReelMedia({ video, file, signal, onProgress = () =>
       analysis: beats.length ? "Visual scene changes + audio energy peaks" : "Visual scene changes (audio beat analysis unavailable)",
     };
   } finally {
-    await seek(video, originalTime).catch(() => {});
+    await seekVideo(video, originalTime).catch(() => {});
     if (wasPlaying) await video.play().catch(() => {});
   }
 }
