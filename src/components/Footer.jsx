@@ -8,6 +8,7 @@ export default function Footer() {
         <a href="#contact">Contact</a>
         <a href="#privacy">Privacy Policy</a>
         <a href="#terms">Terms</a>
+        <a href="#creator-guides">Creator Guides</a>
       </div>
       <hr />
       <p className="copyright">© 2026 GetAutoReel • All Rights Reserved.</p>
