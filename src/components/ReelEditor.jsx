@@ -31,7 +31,7 @@ export default function ReelEditor() {
   const [end, setEnd] = useState(0);
   const [ratio, setRatio] = useState("original");
   const [caption, setCaption] = useState("");
-  const [showCaptionTools, setShowCaptionTools] = useState(false);
+  const [activeStudioPanel, setActiveStudioPanel] = useState("");
   const [captionEnabled, setCaptionEnabled] = useState(true);
   const [style, setStyle] = useState("Clean & cinematic");
   const [musicVolume, setMusicVolume] = useState(35);
@@ -615,28 +615,45 @@ export default function ReelEditor() {
           <button type="button" className="reel-studio-tool reel-tool-auto" onClick={() => { if (!videoUrl) document.getElementById("reel-video-upload")?.scrollIntoView({behavior:"smooth",block:"center"}); else document.getElementById("reel-create-action")?.scrollIntoView({behavior:"smooth",block:"center"}); }} disabled={busy || analyzing}>
             <span className="reel-tool-icon">✦</span><strong>Auto Reel</strong><small>{videoUrl ? "Create a first cut" : "Turn a clip into a reel"}</small><span className="reel-tool-tag">ONE TAP</span>
           </button>
-          <button type="button" className="reel-studio-tool" onClick={() => setShowCaptionTools((value) => !value)}>
+          <button type="button" className="reel-studio-tool" onClick={() => setActiveStudioPanel((value) => value === "captions" ? "" : "captions")}>
             <span className="reel-tool-icon">✍️</span><strong>Text & captions</strong><small>Add your own words</small>
           </button>
-          <button type="button" className="reel-studio-tool" onClick={() => { const panel=document.getElementById("reel-advanced-tools"); if(panel) panel.open=true; document.getElementById("reel-music-upload")?.scrollIntoView({behavior:"smooth",block:"center"}); }}>
+          <button type="button" className="reel-studio-tool" onClick={() => setActiveStudioPanel((value) => value === "music" ? "" : "music")}>
             <span className="reel-tool-icon">♫</span><strong>Music</strong><small>Add a background track</small>
           </button>
-          <button type="button" className="reel-studio-tool" onClick={() => { const panel=document.getElementById("reel-advanced-tools"); if(panel) panel.open=true; document.getElementById("reel-ratio")?.scrollIntoView({behavior:"smooth",block:"center"}); }}>
+          <button type="button" className="reel-studio-tool" onClick={() => setActiveStudioPanel((value) => value === "format" ? "" : "format")}>
             <span className="reel-tool-icon">▣</span><strong>Video size</strong><small>Reels, Shorts & more</small>
           </button>
         </div>
-        {showCaptionTools && <div className="reel-studio-caption-tools" id="reel-studio-caption-tools">
+        {activeStudioPanel === "captions" && <div className="reel-studio-caption-tools" id="reel-studio-caption-tools">
           <label className="reel-studio-caption-toggle"><input type="checkbox" checked={captionEnabled} onChange={(e) => setCaptionEnabled(e.target.checked)} /> Show text on video</label>
           <textarea id="reel-quick-caption-input" aria-label="Caption text" rows="2" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="✍️ Type your caption here…" />
-          <div className="reel-caption-presets" aria-label="Quick caption templates">
-            <button type="button" className="reel-secondary" onClick={() => { setCaption("Wait for it… 👀"); setCaptionEnabled(true); setCaptionStart(start); setCaptionEnd(end || duration); }}>Hook</button>
-            <button type="button" className="reel-secondary" onClick={() => { setCaption("A moment worth remembering ✨"); setCaptionEnabled(true); setCaptionStart(start); setCaptionEnd(end || duration); }}>Story</button>
-            <button type="button" className="reel-secondary" onClick={() => { setCaption("Follow for more 💫"); setCaptionEnabled(true); setCaptionStart(start); setCaptionEnd(end || duration); }}>Follow</button>
-            <button type="button" className="reel-secondary" onClick={() => { setCaption(""); setCaptionEnabled(false); }}>Clear</button>
-          </div>
-          <small>Text appears in your preview and exported video. For timed dialogue, import an SRT/VTT file in More editing tools.</small>
+          <div className="reel-caption-presets"><button type="button" onClick={() => {setCaption("Wait for it… 👀");setCaptionEnabled(true);setCaptionStart(start);setCaptionEnd(end||duration)}}>Hook</button><button type="button" onClick={() => {setCaption("A moment worth remembering ✨");setCaptionEnabled(true);setCaptionStart(start);setCaptionEnd(end||duration)}}>Story</button><button type="button" onClick={() => {setCaption("Follow for more 💫");setCaptionEnabled(true);setCaptionStart(start);setCaptionEnd(end||duration)}}>Follow</button><button type="button" onClick={() => {setCaption("");setCaptionEnabled(false)}}>Clear</button></div>
+          <small>Text is burned into your exported reel. Timed SRT/VTT captions are in More editing tools.</small>
+        </div>}
+        {activeStudioPanel === "music" && <div className="reel-studio-caption-tools" id="reel-studio-music-tools">
+          <label className="reel-studio-file-button"><span>♫</span><strong>{musicUrl ? "Change music track" : "Choose music from device"}</strong><input id="reel-music-upload" type="file" accept="audio/*" onChange={(e) => {loadMusic(e.target.files?.[0]);e.target.value=""}} /></label>
+          {musicUrl && <><label className="reel-studio-caption-toggle">Music volume · {musicVolume}%<input type="range" min="0" max="100" value={musicVolume} onChange={(e)=>setMusicVolume(Number(e.target.value))}/></label><button type="button" className="reel-studio-clear" onClick={()=>{setMusicUrl(old=>{if(old)URL.revokeObjectURL(old);return ""});setStatus("Background music removed.")}}>Remove track</button></>}
+          <small>Music is mixed into export. The current live preview does not mix music audio.</small>
+        </div>}
+        {activeStudioPanel === "format" && <div className="reel-studio-caption-tools" id="reel-studio-format-tools">
+          <label className="reel-studio-caption-toggle" htmlFor="reel-ratio">Choose your video format</label>
+          <select id="reel-ratio" value={ratio} onChange={(e)=>setRatio(e.target.value)}><option value="9:16">📱 Reels / Shorts · 9:16</option><option value="4:5">Portrait feed · 4:5</option><option value="original">Original video size</option><option value="1:1">Square · 1:1</option><option value="16:9">Landscape · 16:9</option></select>
+          <small>Choose where you plan to post your video.</small>
         </div>}
       <div className="reel-studio-trust"><span>🔒 Files stay on your device</span><span>•</span><span>MP4, MOV and more</span><span>•</span><span>Preview before download</span></div>
+                  {pendingDownload && <div className="reel-studio-result"><strong>Review your edited reel before saving</strong><video key={pendingDownload.url} src={pendingDownload.url} controls playsInline preload="metadata" /><button type="button" className="reel-secondary" onClick={() => {
+            const link = document.createElement("a");
+            link.href = pendingDownload.url;
+            link.download = pendingDownload.filename;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            const url = pendingDownload.url;
+            setPendingDownload(null);
+            window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+          }}>↓ Download edited reel</button></div>}
+
       </div>
       <div className="reel-workspace">
         <div className="reel-controls-panel">
@@ -644,38 +661,12 @@ export default function ReelEditor() {
             <input ref={videoPickerRef} type="file" accept="video/*" onChange={(e) => { loadVideo(e.target.files?.[0]); e.target.value = ""; }} />
             <span>＋</span><strong>{videoUrl ? "Choose another video" : "Choose video"}</strong><small>Files stay on your device</small>
           </label>
-                  <div className="reel-preview-panel">
-          <div className="reel-preview-top"><span>LIVE PREVIEW</span><span className="reel-live-dot">● LOCAL EDITING</span></div>
-          <div className={`reel-stage stage-${ratio.replace(":", "-")}`}>
-            <video ref={videoRef} src={videoUrl || undefined} preload="metadata" onLoadStart={() => videoUrl && setVideoLoading(true)} onLoadedMetadata={onMetadata} onLoadedData={onFirstFrameReady} onError={onVideoError}
-              onTimeUpdate={(e) => { const t = e.currentTarget.currentTime; setCurrentTime(t); if (!busy && end > start && t >= end) { e.currentTarget.pause(); e.currentTarget.currentTime = end; } }}
-              onPlay={() => { cancelAnimationFrame(frameRef.current); previewFrame(); }}
-              onPause={() => cancelAnimationFrame(frameRef.current)}
-              onSeeked={() => drawFrame()} playsInline controls={false} />
-            <canvas ref={canvasRef} aria-label="Edited reel preview" />
-            {!videoUrl && <div className="reel-empty"><span>▶</span><strong>Your video preview</strong><small>Upload a clip to get started</small></div>}
-          </div>
-          <div className="reel-preview-controls">
-            <div className="reel-transport"><button type="button" className="reel-secondary" onClick={seekToStart} disabled={!videoUrl}>↺ Play from start</button><button type="button" className="reel-secondary" onClick={() => { if (videoRef.current) { videoRef.current.playbackRate = Number(playbackSpeed); videoRef.current.volume = videoVolume / 100; videoRef.current.paused ? videoRef.current.play() : videoRef.current.pause(); } }} disabled={!videoUrl}>▶ / Pause</button></div>
-            <span>{formatTime(currentTime)} / {formatTime(end || duration)}</span>
-            <span>{ratio}</span>
-          </div>
-          {videoUrl && <div className="reel-timeline">
-            <span>Timeline · scrub preview</span>
-            {analysisResult && <div className="reel-marker-legend" aria-label="Detected timeline markers">
-              <span><i className="reel-marker-swatch scene" /> Scene-change candidates ({analysisResult.sceneCutMarkers.length})</span>
-              <span><i className="reel-marker-swatch beat" /> Audio peaks ({analysisResult.beatMarkers.length})</span>
-            </div>}
-            {analysisResult && <div className="reel-marker-track" role="group" aria-label="Detected markers across the source video">
-              <span className="reel-marker-trim" style={{left: `${duration ? start / duration * 100 : 0}%`, width: `${duration ? Math.max(0, (end - start) / duration * 100) : 0}%`}} />
-              {analysisResult.sceneCutMarkers.map((time) => <button key={`scene-${time}`} type="button" className="reel-tick scene" style={{left: `${duration ? time / duration * 100 : 0}%`}} title={`Scene-change candidate · ${formatTime(time)}`} aria-label={`Seek to scene-change candidate at ${formatTime(time)}`} disabled={time < start || time > end} onClick={() => { if (videoRef.current) { videoRef.current.currentTime = time; setCurrentTime(time); drawFrame(); } }} />)}
-              {analysisResult.beatMarkers.filter((_, index, all) => all.length <= 180 || index % Math.ceil(all.length / 180) === 0).map((time) => <button key={`beat-${time}`} type="button" className="reel-tick beat" style={{left: `${duration ? time / duration * 100 : 0}%`}} title={`Audio energy peak · ${formatTime(time)}`} aria-label={`Seek to audio energy peak at ${formatTime(time)}`} disabled={time < start || time > end} onClick={() => { if (videoRef.current) { videoRef.current.currentTime = time; setCurrentTime(time); drawFrame(); } }} />)}
-            </div>}
-            <input aria-label="Scrub video preview" type="range" min={start} max={Math.max(end, start + 0.1)} step="0.05" value={Math.min(videoRef.current?.currentTime || start, end || duration)} onChange={(e) => { if (videoRef.current) { videoRef.current.currentTime = Number(e.target.value); drawFrame(); } }} />
-          </div>}
-        </div>
+          <video className="reel-source-media" ref={videoRef} src={videoUrl || undefined} preload="metadata" onLoadStart={() => videoUrl && setVideoLoading(true)} onLoadedMetadata={onMetadata} onLoadedData={onFirstFrameReady} onError={onVideoError}
+            onTimeUpdate={(e) => { const t=e.currentTarget.currentTime;setCurrentTime(t);if(!busy&&end>start&&t>=end){e.currentTarget.pause();e.currentTarget.currentTime=end;}}}
+            onPlay={() => {cancelAnimationFrame(frameRef.current);previewFrame();}} onPause={() => cancelAnimationFrame(frameRef.current)} onSeeked={() => drawFrame()} playsInline controls={false} />
+          <canvas className="reel-source-canvas" ref={canvasRef} aria-label="Edited reel rendering surface" />
           {videoName && <div className="reel-file-meta"><span>▣</span><span title={videoName}>{videoName} · {(videoSize / (1024 * 1024)).toFixed(1)} MB{videoDimensions ? ` · ${videoDimensions}` : ""}</span><button type="button" onClick={removeVideo}>Remove</button></div>}
-          {videoLoading && <p className="reel-loading" role="status"><span className="reel-spinner" /> Preparing video preview… Large 4K files may take longer on mobile.</p>}
+          {videoLoading && <p className="reel-loading" role="status"><span className="reel-spinner" /> Preparing your video… Large 4K files may take longer on mobile.</p>}
           <details className="reel-advanced" id="reel-advanced-tools"><summary>⚙️ More editing tools <span>Optional</span></summary>
           {videoUrl && <div className="reel-step"><span>02</span><div><h3>Fine-tune (optional)</h3><p>Most people can skip this. Change trim, format, captions or music if needed.</p></div></div>}
           {videoUrl && autoSegments.length <= 1 && <div className="reel-trim">
@@ -684,7 +675,7 @@ export default function ReelEditor() {
           </div>}
           {videoUrl && autoSegments.length > 1 && <p className="reel-montage-note">Auto Reel is a multi-cut montage. Adjust each cut below and use Preview cut to review it; the single-clip trim sliders are hidden to avoid conflicting edits.</p>}
           <div className="reel-step"><span>03</span><div><h3>Make it yours</h3><p>Choose format, language and your editing vibe.</p></div></div>
-          <div className="reel-field"><label htmlFor="reel-ratio">Video format</label><select id="reel-ratio" value={ratio} onChange={(e) => setRatio(e.target.value)}><option value="9:16">Full-screen vertical · 9:16 · Reels / Shorts · 1080×1920</option><option value="4:5">Vertical portrait · 4:5 · Instagram feed · 1080×1350</option><option value="original">Original · preserve exact source ratio & dimensions</option><option value="1:1">1:1 · Square · 1080×1080</option><option value="16:9">16:9 · Landscape · 1920×1080</option></select></div>
+
           <div className="reel-field"><label htmlFor="reel-speed">Playback speed</label><select id="reel-speed" value={playbackSpeed} onChange={(e) => setPlaybackSpeed(e.target.value)}><option value="0.5">0.5× Slow motion</option><option value="0.75">0.75×</option><option value="1">1× Normal</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2× Fast</option></select></div>
           <div className="reel-field"><label htmlFor="reel-filter">Visual look</label><select id="reel-filter" value={visualFilter} onChange={(e) => setVisualFilter(e.target.value)}><option value="contrast(1.08) saturate(1.12) brightness(1.02)">Auto Reel Enhance · recommended</option><option value="none">Original · no color changes</option><option value="contrast(1.18) saturate(1.2)">Vibrant</option><option value="grayscale(1)">Black & white</option><option value="sepia(.45) contrast(1.08)">Warm vintage</option><option value="brightness(1.12) saturate(.85)">Bright soft</option></select></div>
           <div className="reel-field"><label htmlFor="reel-original-volume">Original video volume · {videoVolume}%</label><input id="reel-original-volume" type="range" min="0" max="100" value={videoVolume} onChange={(e) => setVideoVolume(Number(e.target.value))} /></div>
@@ -697,27 +688,12 @@ export default function ReelEditor() {
           <div className="reel-field"><label htmlFor="reel-text-position">Text position</label><select id="reel-text-position" value={textPosition} onChange={(e) => setTextPosition(e.target.value)}><option value="bottom">Bottom</option><option value="center">Center</option><option value="top">Top</option></select></div>
           <div className="reel-field"><label htmlFor="reel-subtitles">Import timed subtitles (SRT / VTT)</label><input id="reel-subtitles" type="file" accept=".srt,.vtt" onChange={(e) => { loadSubtitles(e.target.files?.[0]); e.target.value = ""; }} /></div>
           {subtitleName && <div className="reel-file-meta"><span>CC</span><span title={subtitleName}>{subtitleName} · {subtitles.length} cues</span><button type="button" onClick={() => { setSubtitles([]); setSubtitleName(""); }}>Remove</button></div>}
-          <label className="reel-caption-toggle"><input type="checkbox" checked={captionEnabled} onChange={(e) => setCaptionEnabled(e.target.checked)} /> Show caption on video</label>
-          <div className="reel-caption-presets" aria-label="Quick caption templates">
-            <span>Quick text templates</span>
-            {[
-              { label: "Hook", text: "Wait for it… 👀" },
-              { label: "Story", text: "A moment worth remembering ✨" },
-              { label: "CTA", text: "Follow for more 💫" },
-              { label: "No text", text: "" },
-            ].map((preset) => <button key={preset.label} type="button" className="reel-secondary" onClick={() => { setCaption(preset.text); setCaptionEnabled(Boolean(preset.text)); setCaptionStart(start); setCaptionEnd(end || duration); setStatus(preset.text ? `“${preset.label}” caption template applied. Edit the wording before export.` : "Caption text cleared."); }}>{preset.label}</button>)}
-          </div>
-          <div className="reel-field"><label htmlFor="reel-caption">On-screen text / caption (burned into video)</label><textarea id="reel-caption" rows="3" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Type your caption here. It will appear on the video preview and exported reel…" /></div>
-          <p className="reel-caption-help">Caption preview appears on the video. During export it is rendered into every matching frame, not added as a separate text file.</p>
           {videoUrl && <div className="reel-caption-timing">
             <strong>Caption timing</strong>
             <label>Show from <b>{formatTime(captionStart)}</b><input type="range" min={start} max={Math.max(end, start + 0.1)} step="0.1" value={Math.min(captionStart, end || duration)} onChange={(e) => setCaptionStart(Number(e.target.value))} /></label>
             <label>Hide after <b>{formatTime(captionEnd || end || duration)}</b><input type="range" min={captionStart} max={Math.max(end, captionStart + 0.1)} step="0.1" value={Math.min(captionEnd || end || duration, end || duration)} onChange={(e) => setCaptionEnd(Number(e.target.value))} /></label>
             <button type="button" className="reel-secondary" onClick={() => { setCaptionStart(start); setCaptionEnd(end || duration); }}>Show for full trimmed clip</button>
           </div>}
-          <div className="reel-step"><span>04</span><div><h3>Add background music</h3><p>Music is mixed into export; live preview currently plays the original video audio only.</p></div></div>
-          <label className="reel-audio-upload"><input id="reel-music-upload" type="file" accept="audio/*" onChange={(e) => loadMusic(e.target.files?.[0])} />♫ {musicUrl ? "Music added · change track" : "Add music track (export)"}</label>
-          {musicUrl && <><label className="reel-volume">Export music volume <b>{musicVolume}%</b><input type="range" min="0" max="100" value={musicVolume} onChange={(e) => setMusicVolume(Number(e.target.value))} /></label><button type="button" className="reel-secondary" onClick={() => { setMusicUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return ""; }); setStatus("Background music removed."); }}>Remove music track</button></>}
           <button className="reel-secondary reel-analyze" type="button" onClick={() => runAutoAnalysis()} disabled={!videoUrl || videoLoading || analyzing || busy}>{analyzing ? `Checking… ${analysisProgress}%` : "Check video & audio"}</button>
           
           </details>
@@ -728,17 +704,6 @@ export default function ReelEditor() {
           {analysisResult && <div className="reel-analysis-card"><strong>Automatic analysis report</strong><span>{analysisResult.sceneChanges} visual scene changes</span><span>{analysisResult.beatMarkers.length} audio rhythm peaks</span><span>{analysisResult.segments.length} timeline sections mapped</span><span>Suggested trim: {formatTime(analysisResult.suggestedStart)} – {formatTime(analysisResult.suggestedEnd)}</span><button type="button" className="reel-secondary" onClick={() => { setStart(analysisResult.suggestedStart); setEnd(analysisResult.suggestedEnd); setCaptionStart(analysisResult.suggestedStart); setCaptionEnd(analysisResult.suggestedEnd); if (videoRef.current) videoRef.current.currentTime = analysisResult.suggestedStart; setStatus("Suggested trim applied. Preview it before exporting."); }}>Apply suggested trim</button><small>Suggestion method: {analysisResult.suggestionMethod}. This is a timeline heuristic, not semantic AI highlight detection. Visual changes and audio energy are analyzed; speech-to-text captions and semantic AI editing are not enabled.</small></div>}
           <button className="reel-export" type="button" onClick={exportReel} disabled={!videoUrl || videoLoading || busy}>{busy ? `Preparing your Reel… ${progress}%` : "Export & prepare download"}</button>
           {busy && <><progress className="reel-progress" max="100" value={progress} aria-label="Export progress" /><button type="button" className="reel-secondary reel-cancel-export" onClick={() => { exportCancelledRef.current = true; const recorder = recorderRef.current; if (recorder && recorder.state !== "inactive") recorder.stop(); else { setBusy(false); setProgress(0); setStatus("Export cancelled."); } }}>■ Stop export</button></>}
-          {pendingDownload && <div className="reel-export-preview"><strong>Review your edited reel before saving</strong><video key={pendingDownload.url} src={pendingDownload.url} controls playsInline preload="metadata" /><button type="button" className="reel-secondary" onClick={() => {
-            const link = document.createElement("a");
-            link.href = pendingDownload.url;
-            link.download = pendingDownload.filename;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            const url = pendingDownload.url;
-            setPendingDownload(null);
-            window.setTimeout(() => URL.revokeObjectURL(url), 60000);
-          }}>↓ Download edited reel</button></div>}
           <p className="reel-export-format">Your exported file includes the selected framing, color filter, captions, speed and audio settings. Default preset: original dimensions, original framing and no color filter. The browser re-encodes exported video, so a small quality difference may still occur.</p>
           <p className="reel-status" role="status">{status || "Your files are processed locally in this browser."}</p>
           <p className="reel-note">Note: Reel creation currently uses on-device scene and audio analysis heuristics—not semantic AI highlights or speech-to-text captions. We’re improving automatic editing.</p>

@@ -250,3 +250,35 @@
 .reel-status{border-color:#dcd4fa;background:#f8f5ff;color:#443a91}
 @media(prefers-reduced-motion:reduce){.reel-studio-dashboard,.reel-studio-dashboard:before,.reel-studio-mark,.reel-studio-tool .reel-tool-icon,.reel-studio-caption-tools{animation:none!important;transition:none!important}}
 @media(max-width:480px){.reel-studio-caption-tools{padding:11px}.reel-studio-caption-tools .reel-caption-presets .reel-secondary{flex:1 1 auto}}
+
+
+/* Unified creator studio: animated glass, aurora and floating editing symbols. */
+.reel-studio-dashboard{min-height:260px;background-image:radial-gradient(circle at 12% 18%,#ffb8e766 0 2px,transparent 3px),radial-gradient(circle at 82% 25%,#a9f4ff88 0 2px,transparent 3px),radial-gradient(circle at 65% 78%,#fff4b966 0 2px,transparent 3px),linear-gradient(125deg,#27175f,#5a35a7 48%,#a14fbd 100%);background-size:230px 230px,310px 310px,270px 270px,200% 200%;animation:studio-gradient 16s ease infinite;box-shadow:0 22px 55px #5330a638,inset 0 1px 0 #ffffff90}
+.reel-studio-dashboard:after{width:280px;height:280px;left:auto;right:15%;bottom:-200px;background:#70e5ff66;box-shadow:0 0 100px 55px #ff8de544;animation:studio-orbit 11s ease-in-out infinite alternate}
+.reel-studio-dashboard:before{width:300px;height:300px;right:-80px;top:-170px;background:#ffb4f477;box-shadow:0 0 90px 40px #df91ff55;animation:studio-orbit 13s ease-in-out infinite alternate-reverse}
+.reel-studio-tools{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.reel-studio-tool{min-height:116px;background:linear-gradient(145deg,#ffffff55,#ffffff16);border-color:#ffffffa8;box-shadow:inset 0 1px 0 #ffffffc9,0 12px 24px #1d0d4938}
+.reel-studio-tool strong{font-size:14px}.reel-studio-tool small{font-size:10px;color:#f9edff}
+.reel-studio-tool:nth-child(1){animation:card-glow 4s ease-in-out infinite}.reel-studio-tool:nth-child(2){animation:card-glow 4.8s ease-in-out infinite .4s}.reel-studio-tool:nth-child(3){animation:card-glow 4.4s ease-in-out infinite .8s}.reel-studio-tool:nth-child(4){animation:card-glow 5s ease-in-out infinite 1.2s}
+.reel-studio-caption-tools{position:relative;z-index:1;margin-top:15px;padding:15px;border:1px solid #ffffffb8;border-radius:19px;background:linear-gradient(145deg,#ffffff42,#ffffff20);box-shadow:inset 0 1px 0 #ffffffbb,0 14px 28px #1c0b4938;backdrop-filter:blur(22px);animation:studio-panel-in .32s ease-out both}
+.reel-studio-caption-tools textarea,.reel-studio-caption-tools select{width:100%;min-height:46px;padding:11px 13px;border:1px solid #ffffffd9;border-radius:13px;background:#fff;color:#33205f;font:inherit}
+.reel-studio-caption-tools .reel-caption-presets button,.reel-studio-clear{min-height:38px;padding:8px 13px;border:1px solid #ffffffd0;border-radius:11px;background:#fff;color:#5632a0;font-weight:800}
+.reel-studio-caption-toggle{display:flex;justify-content:space-between;flex-wrap:wrap;color:#fff}
+.reel-studio-file-button{display:flex;align-items:center;gap:12px;min-height:60px;padding:12px;border:1px dashed #fff;border-radius:14px;background:#ffffff26;color:#fff;cursor:pointer}
+.reel-studio-file-button>span{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:#ffffff40;font-size:24px}
+.reel-studio-file-button input{max-width:100%;margin-left:auto;color:#fff;font-size:11px}
+.reel-studio-caption-tools>small{color:#f8eaff;font-size:10px;line-height:1.5}
+.reel-studio-trust{color:#f5eaff}
+.reel-source-media,.reel-source-canvas{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;left:-10000px!important;top:0!important}
+.reel-studio-result{display:grid;gap:10px;margin-top:17px;padding:14px;border:1px solid #ffffffd4;border-radius:18px;background:linear-gradient(145deg,#ffffff44,#ffffff22);box-shadow:0 12px 28px #1a0a493d;animation:studio-panel-in .4s ease-out both}
+.reel-studio-result strong{color:#fff;font-size:15px}.reel-studio-result video{width:100%;max-height:420px;aspect-ratio:9/16;object-fit:contain;border:1px solid #ffffff8a;border-radius:14px;background:#120d25}
+.reel-studio-result button{min-height:46px;border:0;border-radius:12px;background:linear-gradient(100deg,#fff0a9,#ffc5ed);color:#43236f;font-weight:900}
+.reel-workspace{background:transparent}
+.reel-editor{position:relative;isolation:isolate;background:radial-gradient(ellipse at 15% 10%,#f2e8ff 0,transparent 38%),radial-gradient(ellipse at 88% 42%,#ffe7f7 0,transparent 36%),linear-gradient(180deg,#faf7ff,#f5f3ff 55%,#fff8fd)}
+.reel-editor:before{content:"✦   ◌   ✧   ▣   ✦";position:absolute;z-index:-1;inset:0;overflow:hidden;pointer-events:none;color:#9878e8;font-size:clamp(25px,5vw,48px);letter-spacing:clamp(30px,9vw,110px);line-height:170px;opacity:.12;white-space:pre-wrap;animation:ambient-drift 24s linear infinite}
+.reel-editor:after{content:"";position:absolute;z-index:-1;inset:-30%;pointer-events:none;background:conic-gradient(from 0deg at 50% 50%,transparent 0 22%,#e4caff20 28%,transparent 35% 58%,#ffb8e71b 65%,transparent 72%);filter:blur(45px);animation:ambient-spin 42s linear infinite}
+@keyframes card-glow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12)}}
+@keyframes ambient-drift{0%{transform:translate3d(0,0,0)}50%{transform:translate3d(12px,-24px,0)}100%{transform:translate3d(0,0,0)}}
+@keyframes ambient-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.reel-studio-dashboard,.reel-studio-dashboard:before,.reel-studio-dashboard:after,.reel-studio-tool,.reel-editor:before,.reel-editor:after{animation:none!important}}
+@media(max-width:650px){.reel-studio-tools{grid-template-columns:repeat(2,minmax(0,1fr))}.reel-studio-tool{min-height:108px}}
