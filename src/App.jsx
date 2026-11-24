@@ -6,7 +6,6 @@ import OurAITools from "./components/OurAITools";
 import Categories from "./components/Categories";
 import AICreatorStudio from "./components/AICreatorStudio";
 import ReelEditor from "./components/ReelEditor";
-import ThumbnailGenerator from "./ThumbnailGenerator";
 import SearchBar from "./components/SearchBar";
 import ToolCard from "./components/ToolCard";
 import Footer from "./components/Footer";
@@ -114,7 +113,6 @@ export default function App() {
 
         <section id="creator" className="creator-section">
           <AICreatorStudio />
-          <ThumbnailGenerator />
         </section>
 
         <CreatorGuides />
@@ -130,18 +128,7 @@ export default function App() {
           </a>
         </section>
 
-        <section id="about" className="legal-section">
-          <Footer />
-          <div className="policy-content">
-            <h2>About GetAutoReel</h2>
-            <p>GetAutoReel is a browser-based video editing experience designed to help creators trim videos, add captions and music, adjust social formats, preview edits and export short-form content. Features may change as the service improves.</p>
-          </div>
-        </section>
-        <section id="contact" className="policy-content">
-          <h2>Contact</h2>
-          <p>We are preparing an official support contact. Until it is published, please do not send sensitive personal information through this website.</p>
-        </section>
-        <section id="privacy" className="policy-content">
+        <details id="privacy" className="policy-content legal-glass"><summary>Privacy Policy</summary><div className="legal-body">
           <h2>Privacy Policy</h2>
           <p><strong>Last updated: November 24, 2026</strong></p>
           <p>GetAutoReel aims to process video edits in your browser. Video files selected in the Reel Editor are handled locally by your browser for preview and export; the editor is not designed to upload your video files to our servers.</p>
@@ -157,8 +144,8 @@ export default function App() {
           <h3>External services and links</h3>
           <p>Links to AI tools and other external services are provided for convenience. Those providers operate their own websites and determine their own privacy, cookie and data practices. Review their policies before sharing information with them.</p>
           <p>Do not upload content you do not have permission to edit. This policy is a general notice and will be revised when specific analytics, advertising or account services are activated. Contact details for privacy questions will be published here once an official support address is configured.</p>
-        </section>
-        <section id="terms" className="policy-content">
+        </div></details>
+        <details id="terms" className="policy-content legal-glass"><summary>Terms of Use</summary><div className="legal-body">
           <h2>Terms of Use</h2>
           <p><strong>Last updated: November 22, 2026</strong></p>
           <ul>
@@ -169,7 +156,7 @@ export default function App() {
             <li>Third-party tools linked from the directory are operated independently; we do not guarantee their availability, pricing or performance.</li>
           </ul>
           <p>We may revise these terms as the product develops. Continued use after an update means you accept the updated terms to the extent permitted by applicable law.</p>
-        </section>
+        </div></details>
       </main>
     </>
   );
