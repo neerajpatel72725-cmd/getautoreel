@@ -607,6 +607,41 @@ export default function ReelEditor() {
     }
   };
 
+  const timelineDuration = Number.isFinite(duration) && duration > 0 ? duration : 0.1;
+  const timelineSegments = autoSegments.length > 1 ? autoSegments : (end > start ? [{ start, end }] : []);
+  const timelineSceneMarkers = analysisResult?.sceneCutMarkers || [];
+  const allTimelineBeatMarkers = analysisResult?.beatMarkers || [];
+  const timelineBeatStep = Math.max(1, Math.ceil(allTimelineBeatMarkers.length / 160));
+  const timelineBeatMarkers = allTimelineBeatMarkers.filter((_, index) => index % timelineBeatStep === 0);
+  const timelinePosition = (time) => `${(Math.max(0, Math.min(duration || 0, time)) / timelineDuration) * 100}%`;
+  const seekTimeline = (rawTime) => {
+    const next = Math.max(0, Math.min(timelineDuration, Number(rawTime) || 0));
+    setCurrentTime(next);
+    if (videoRef.current) videoRef.current.currentTime = next;
+  };
+  const setTimelineBoundary = (field) => {
+    if (!duration || busy || videoLoading) return;
+    if (autoSegments.length > 1) {
+      const next = updateMontageSegment(autoSegments, 0, field, currentTime, duration);
+      setAutoSegments(next);
+      if (next.length) {
+        setStart(next[0].start);
+        setEnd(next[0].end);
+        if (field === "start") setCaptionStart(next[0].start);
+        else setCaptionEnd(next[0].end);
+      }
+    } else if (field === "start") {
+      const next = Math.min(Math.max(0, currentTime), Math.max(0, end - 0.3));
+      setStart(next);
+      setCaptionStart(next);
+    } else {
+      const next = Math.max(start + 0.3, Math.min(duration, currentTime));
+      setEnd(next);
+      setCaptionEnd(next);
+    }
+    setStatus(`Trim ${field === "start" ? "start" : "end"} set at ${formatTime(currentTime)}. Preview the edit before exporting.`);
+  };
+
   return (
     <section className="reel-editor" id="reel-editor">
       <div className="reel-studio-shell">
@@ -701,6 +736,24 @@ export default function ReelEditor() {
           <button id="reel-create-action" className="reel-export reel-auto-create" type="button" onClick={() => runAutoAnalysis({ autoApply: true })} disabled={!videoUrl || videoLoading || analyzing || busy}>{analyzing ? `Creating your Reel… ${analysisProgress}%` : "✨ Create my Reel"}</button>
           <p className="reel-caption-help">One tap automatically selects cuts, applies vertical framing and an enhanced look. Preview before saving.</p>
           {analyzing && <div className="reel-analysis-progress"><progress className="reel-progress" max="100" value={analysisProgress} aria-label="Analysis progress" /><button type="button" className="reel-secondary reel-cancel-analysis" onClick={() => analysisAbortRef.current?.abort()}>■ Stop analysis</button></div>}
+          {videoUrl && <section className="reel-timeline" aria-label="Video edit timeline">
+            <div className="reel-timeline-heading">
+              <div><strong>EDIT TIMELINE</strong><span>{formatTime(currentTime)} / {formatTime(duration)}</span></div>
+              <small>{analysisResult ? `${timelineSceneMarkers.length} scene cuts · ${allTimelineBeatMarkers.length} rhythm peaks` : "Analyze your video to map scene cuts and audio rhythm"}</small>
+            </div>
+            <div className="reel-timeline-track" role="group" aria-label="Selected clips and detected timeline markers">
+              {timelineSegments.map((segment, index) => <span className="reel-timeline-selection" key={`selection-${index}`} style={{ left: timelinePosition(segment.start), width: `${Math.max(0.6, ((segment.end - segment.start) / timelineDuration) * 100)}%` }} title={`Selected clip ${index + 1}: ${formatTime(segment.start)} to ${formatTime(segment.end)}`} />)}
+              {timelineSceneMarkers.map((time, index) => <button type="button" className="reel-timeline-marker reel-timeline-scene" key={`scene-${index}`} style={{ left: timelinePosition(time) }} onClick={() => seekTimeline(time)} disabled={busy || videoLoading} aria-label={`Seek to scene cut at ${formatTime(time)}`} title={`Scene cut · ${formatTime(time)}`} />)}
+              {timelineBeatMarkers.map((time, index) => <button type="button" className="reel-timeline-marker reel-timeline-beat" key={`beat-${index}`} style={{ left: timelinePosition(time) }} onClick={() => seekTimeline(time)} disabled={busy || videoLoading} aria-label={`Seek to audio rhythm peak at ${formatTime(time)}`} title={`Audio rhythm peak · ${formatTime(time)}`} />)}
+              <span className="reel-timeline-playhead" style={{ left: timelinePosition(currentTime) }} aria-hidden="true" />
+            </div>
+            <label className="reel-timeline-scrub"><span>Scrub video</span><input className="reel-timeline-scrubber" type="range" min="0" max={timelineDuration} step="0.05" value={Math.min(currentTime, timelineDuration)} onChange={(e) => seekTimeline(e.target.value)} disabled={busy || videoLoading} aria-label="Scrub video timeline" /></label>
+            <div className="reel-timeline-footer">
+              <div className="reel-timeline-legend"><span><i className="reel-timeline-key reel-timeline-key-scene" />Scene cut</span><span><i className="reel-timeline-key reel-timeline-key-beat" />Audio peak</span><span><i className="reel-timeline-key reel-timeline-key-selection" />Selected clip</span></div>
+              <div className="reel-timeline-actions"><button type="button" className="reel-secondary" onClick={() => setTimelineBoundary("start")} disabled={busy || videoLoading || !duration}>Set in at playhead</button><button type="button" className="reel-secondary" onClick={() => setTimelineBoundary("end")} disabled={busy || videoLoading || !duration}>Set out at playhead</button></div>
+            </div>
+            <small>Tap a marker to jump to that moment. Set in/out at the playhead to adjust the first cut or the current trim.</small>
+          </section>}
           {autoSegments.length > 1 && <div className="reel-analysis-card reel-montage-editor"><strong>Auto Reel montage · {autoSegments.length} cuts</strong>{autoSegments.map((segment, index) => <div className="reel-montage-cut" key={`${index}-${segment.start}`}><span>Clip {index + 1}</span><label>Start <input type="number" min="0" max={Math.max(0, segment.end - 0.3)} step="0.1" value={segment.start.toFixed(1)} onChange={(e) => { const next = updateMontageSegment(autoSegments, index, "start", e.target.value, duration); setAutoSegments(next); if (next.length) { setStart(next[0].start); setEnd(next[0].end); } }} /></label><label>End <input type="number" min={segment.start + 0.3} max={duration} step="0.1" value={segment.end.toFixed(1)} onChange={(e) => { const next = updateMontageSegment(autoSegments, index, "end", e.target.value, duration); setAutoSegments(next); if (next.length) { setStart(next[0].start); setEnd(next[0].end); } }} /></label>{analysisResult?.beatMarkers?.length > 0 && <button type="button" className="reel-secondary" onClick={() => { const nearest = analysisResult.beatMarkers.reduce((best, beat) => Math.abs(beat - segment.start) < Math.abs(best - segment.start) ? beat : best, analysisResult.beatMarkers[0]); setAutoSegments((items) => items.map((item, i) => i === index ? { ...item, start: Math.max(0, Math.min(nearest, item.end - 0.3)) } : item)); }}>Snap start to beat</button>}<button type="button" className="reel-secondary" onClick={() => { const player = videoRef.current; if (player) { setStart(segment.start); setEnd(segment.end); setCurrentTime(segment.start); player.currentTime = segment.start; player.playbackRate = Number(playbackSpeed); player.play().catch(() => {}); setStatus(`Previewing montage cut ${index + 1}. Export will still include all selected cuts.`); } }}>Preview cut</button><button type="button" className="reel-secondary" onClick={() => { const next = autoSegments.filter((_, i) => i !== index); setAutoSegments(next); if (next.length) { setStart(next[0].start); setEnd(next[0].end); } }}>Remove</button></div>)}<small>Adjust clip start/end or remove cuts. Export joins selected clips chronologically.</small></div>}
           {analysisResult && <div className="reel-analysis-card"><strong>Automatic analysis report</strong><span>{analysisResult.sceneChanges} visual scene changes</span><span>{analysisResult.beatMarkers.length} audio rhythm peaks</span><span>{analysisResult.segments.length} timeline sections mapped</span><span>Suggested trim: {formatTime(analysisResult.suggestedStart)} – {formatTime(analysisResult.suggestedEnd)}</span><button type="button" className="reel-secondary" onClick={() => { setStart(analysisResult.suggestedStart); setEnd(analysisResult.suggestedEnd); setCaptionStart(analysisResult.suggestedStart); setCaptionEnd(analysisResult.suggestedEnd); if (videoRef.current) videoRef.current.currentTime = analysisResult.suggestedStart; setStatus("Suggested trim applied. Preview it before exporting."); }}>Apply suggested trim</button><small>Suggestion method: {analysisResult.suggestionMethod}. This is a timeline heuristic, not semantic AI highlight detection. Visual changes and audio energy are analyzed; speech-to-text captions and semantic AI editing are not enabled.</small></div>}
           <button className="reel-export" type="button" onClick={exportReel} disabled={!videoUrl || videoLoading || busy}>{busy ? `Preparing your Reel… ${progress}%` : "Export & prepare download"}</button>
