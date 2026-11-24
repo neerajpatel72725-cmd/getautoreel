@@ -175,3 +175,37 @@
  .reel-advanced>summary{min-height:50px;padding:11px}
  .reel-export{min-height:52px}
 }
+
+
+/* GetAutoReel Studio dashboard — inspired by creator-app project launch screens. */
+.reel-studio-dashboard{position:relative;overflow:hidden;margin:0 0 22px;padding:clamp(18px,3vw,28px);border:1px solid #283b55;border-radius:24px;background:radial-gradient(ellipse at 90% 0%,#174f59 0,transparent 36%),linear-gradient(135deg,#071b2c 0%,#101a31 55%,#17243b 100%);color:#f8fbff;box-shadow:0 18px 48px #0c1b3026}
+.reel-studio-topline{display:flex;align-items:flex-start;gap:13px;margin-bottom:22px}
+.reel-studio-mark{display:grid;place-items:center;flex:0 0 43px;width:43px;height:43px;border:1px solid #62e4d14a;border-radius:14px;background:#1ac9b51b;color:#75f1df;font-size:25px}
+.reel-studio-topline>div{min-width:0;flex:1}
+.reel-studio-eyebrow{color:#77dfd0;font-size:10px;font-weight:800;letter-spacing:1.8px}
+.reel-studio-topline h2{margin:5px 0 4px;color:#fff;font-size:clamp(21px,3.2vw,29px);letter-spacing:-.8px}
+.reel-studio-topline p{margin:0;color:#b8c6d7;font-size:12px}
+.reel-studio-beta{padding:6px 9px;border:1px solid #ffffff25;border-radius:99px;color:#b8c6d7;font-size:9px;font-weight:800;letter-spacing:1px}
+.reel-studio-tools{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+.reel-studio-tool{position:relative;display:flex;min-width:0;min-height:132px;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:7px;padding:15px;border:1px solid #ffffff18;border-radius:17px;background:linear-gradient(145deg,#ffffff12,#ffffff08);color:#fff;text-align:left;transition:transform .2s,border-color .2s,background .2s}
+.reel-studio-tool:hover{transform:translateY(-3px);border-color:#6be4d18c;background:#ffffff17}
+.reel-tool-icon{display:grid;place-items:center;width:40px;height:40px;border:1px solid #74e8d52e;border-radius:13px;background:#25c9b51c;color:#8df2e3;font-size:21px}
+.reel-studio-tool strong{font-size:13px;line-height:1.25}
+.reel-studio-tool small{color:#b8c6d7;font-size:10px;line-height:1.45}
+.reel-tool-auto{border-color:#35d8c48a;background:linear-gradient(145deg,#0e9e91,#087a83)}
+.reel-tool-auto .reel-tool-icon{border-color:#ffffff35;background:#ffffff20;color:#fff}
+.reel-tool-auto small{color:#e0fffb}
+.reel-tool-tag{position:absolute;top:12px;right:11px;padding:4px 6px;border-radius:6px;background:#ffffff20;color:#e7fffb;font-size:8px;font-weight:900;letter-spacing:.6px}
+.reel-studio-new-project{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:13px;padding:14px 15px;border:1px solid #ffffff1c;border-radius:16px;background:#ffffff0b}
+.reel-studio-new-project>div{display:flex;align-items:center;gap:11px;min-width:0}
+.reel-new-project-icon{display:grid;place-items:center;flex:0 0 39px;width:39px;height:39px;border-radius:12px;background:#fff;color:#10263a;font-size:24px;font-weight:700}
+.reel-studio-new-project>div>div{display:grid;gap:3px}
+.reel-studio-new-project strong{color:#fff;font-size:12px}
+.reel-studio-new-project small{color:#b8c6d7;font-size:10px;line-height:1.4}
+.reel-studio-new-project>button{flex:0 0 auto;min-height:42px;padding:10px 16px;border:0;border-radius:11px;background:linear-gradient(100deg,#45e0ca,#36a7ff);color:#06263a;font-size:12px;font-weight:900;box-shadow:0 7px 20px #23b9bd35}
+.reel-studio-new-project>button:hover{transform:translateY(-2px);filter:brightness(1.06)}
+.reel-studio-new-project>button:disabled,.reel-studio-tool:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.reel-studio-trust{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:13px;color:#a9bdcc;font-size:9px}
+.reel-studio-trust span:first-child{color:#8ce6d9}
+@media(max-width:650px){.reel-studio-tools{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.reel-studio-tool{min-height:118px;padding:13px}.reel-studio-new-project{align-items:stretch;flex-direction:column}.reel-studio-new-project>button{width:100%;min-height:48px}.reel-studio-dashboard{border-radius:19px}}
+@media(max-width:360px){.reel-studio-tool{min-height:112px;padding:11px}.reel-tool-icon{width:36px;height:36px}}

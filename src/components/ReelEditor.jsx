@@ -13,6 +13,7 @@ const formatTime = (value) => {
 export default function ReelEditor() {
   const videoRef = useRef(null);
   const videoFileRef = useRef(null);
+  const videoPickerRef = useRef(null);
   const canvasRef = useRef(null);
   const frameRef = useRef(0);
   const recorderRef = useRef(null);
@@ -607,17 +608,31 @@ export default function ReelEditor() {
 
   return (
     <section className="reel-editor" id="reel-editor">
-      <div className="reel-heading">
-        <span className="reel-kicker">GetAutoReel CREATOR TOOLS · BETA</span>
-        <h2>Make a Reel</h2>
-        <p>Upload a video, create a first cut, add text, preview the edit and export it. Automatic speech captions are not available yet.</p>
+      <div className="reel-studio-dashboard">
+        <div className="reel-studio-topline"><span className="reel-studio-mark">✦</span><div><span className="reel-studio-eyebrow">GETAUTOREEL STUDIO</span><h2>What will you create today?</h2><p>Your video workspace. One tap to get started.</p></div><span className="reel-studio-beta">BETA</span></div>
+        <div className="reel-studio-tools" aria-label="Quick editing tools">
+          <button type="button" className="reel-studio-tool reel-tool-auto" onClick={() => videoUrl ? runAutoAnalysis({ autoApply: true }) : videoPickerRef.current?.click()} disabled={busy || analyzing}>
+            <span className="reel-tool-icon">✦</span><strong>Auto Reel</strong><small>{videoUrl ? "Create a first cut" : "Turn a clip into a reel"}</small><span className="reel-tool-tag">ONE TAP</span>
+          </button>
+          <button type="button" className="reel-studio-tool" onClick={() => { document.getElementById("reel-quick-caption-input")?.scrollIntoView({behavior:"smooth",block:"center"}); document.getElementById("reel-quick-caption-input")?.focus({preventScroll:true}); }}>
+            <span className="reel-tool-icon">✍️</span><strong>Text & captions</strong><small>Add your own words</small>
+          </button>
+          <button type="button" className="reel-studio-tool" onClick={() => { const panel=document.getElementById("reel-advanced-tools"); if(panel) panel.open=true; document.getElementById("reel-music-upload")?.scrollIntoView({behavior:"smooth",block:"center"}); }}>
+            <span className="reel-tool-icon">♫</span><strong>Music</strong><small>Add a background track</small>
+          </button>
+          <button type="button" className="reel-studio-tool" onClick={() => { const panel=document.getElementById("reel-advanced-tools"); if(panel) panel.open=true; document.getElementById("reel-ratio")?.scrollIntoView({behavior:"smooth",block:"center"}); }}>
+            <span className="reel-tool-icon">▣</span><strong>Video size</strong><small>Reels, Shorts & more</small>
+          </button>
+        </div>
+        <div className="reel-studio-new-project"><div><span className="reel-new-project-icon">＋</span><div><strong>Start a new project</strong><small>Choose a video from your phone or computer</small></div></div><button type="button" onClick={() => videoPickerRef.current?.click()} disabled={busy || analyzing}>＋ New project</button></div>
+        <div className="reel-studio-trust"><span>🔒 Files stay on your device</span><span>•</span><span>MP4, MOV and more</span><span>•</span><span>Preview before download</span></div>
       </div>
       <div className="reel-workspace">
         <div className="reel-controls-panel">
           <div className="reel-simple-intro"><strong>Just 2 steps</strong><ol><li>Upload your video.</li><li>Tap <b>Create my Reel</b>, preview it, then save.</li></ol><small>No editing skills or setup needed. Your video stays on this device.</small></div>
           <div className="reel-step"><span>01</span><div><h3>Choose your video</h3><p>Select a video from your device.</p></div></div>
           <label className={`reel-upload ${dragOver ? "is-dragging" : ""}`} onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={(e) => { e.preventDefault(); setDragOver(false); loadVideo(e.dataTransfer.files?.[0]); }}>
-            <input type="file" accept="video/*" onChange={(e) => { loadVideo(e.target.files?.[0]); e.target.value = ""; }} />
+            <input ref={videoPickerRef} type="file" accept="video/*" onChange={(e) => { loadVideo(e.target.files?.[0]); e.target.value = ""; }} />
             <span>＋</span><strong>{videoUrl ? "Choose another video" : "Choose video"}</strong><small>Files stay on your device</small>
           </label>
                   <div className="reel-preview-panel">
@@ -653,7 +668,7 @@ export default function ReelEditor() {
           <div className="reel-quick-captions" aria-labelledby="reel-quick-caption-title">
             <div><strong id="reel-quick-caption-title">✍️ Add captions or on-screen text</strong><small>Type your own text and see it in the preview and exported video.</small></div>
             <label className="reel-caption-toggle"><input type="checkbox" checked={captionEnabled} onChange={(e) => setCaptionEnabled(e.target.checked)} /> Show text on video</label>
-            <textarea aria-label="Caption text" rows="3" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Type your caption here…" />
+            <textarea id="reel-quick-caption-input" aria-label="Caption text" rows="3" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Type your caption here…" />
             <div className="reel-caption-presets" aria-label="Quick caption templates">
               <button type="button" className="reel-secondary" onClick={() => { setCaption("Wait for it… 👀"); setCaptionEnabled(true); setCaptionStart(start); setCaptionEnd(end || duration); }}>Hook</button>
               <button type="button" className="reel-secondary" onClick={() => { setCaption("A moment worth remembering ✨"); setCaptionEnabled(true); setCaptionStart(start); setCaptionEnd(end || duration); }}>Story</button>
@@ -664,7 +679,7 @@ export default function ReelEditor() {
           </div>
           {videoName && <div className="reel-file-meta"><span>▣</span><span title={videoName}>{videoName} · {(videoSize / (1024 * 1024)).toFixed(1)} MB{videoDimensions ? ` · ${videoDimensions}` : ""}</span><button type="button" onClick={removeVideo}>Remove</button></div>}
           {videoLoading && <p className="reel-loading" role="status"><span className="reel-spinner" /> Preparing video preview… Large 4K files may take longer on mobile.</p>}
-          <details className="reel-advanced"><summary>⚙️ More editing tools <span>Optional</span></summary>
+          <details className="reel-advanced" id="reel-advanced-tools"><summary>⚙️ More editing tools <span>Optional</span></summary>
           {videoUrl && <div className="reel-step"><span>02</span><div><h3>Fine-tune (optional)</h3><p>Most people can skip this. Change trim, format, captions or music if needed.</p></div></div>}
           {videoUrl && autoSegments.length <= 1 && <div className="reel-trim">
             <label>Start <b>{formatTime(start)}</b><input type="range" min="0" max={Math.max(duration, 0.1)} step="0.1" value={start} onChange={(e) => { const v = Number(e.target.value); setStart(Math.min(v, Math.max(0, end - 0.2))); }} /></label>
@@ -704,7 +719,7 @@ export default function ReelEditor() {
             <button type="button" className="reel-secondary" onClick={() => { setCaptionStart(start); setCaptionEnd(end || duration); }}>Show for full trimmed clip</button>
           </div>}
           <div className="reel-step"><span>04</span><div><h3>Add background music</h3><p>Music is mixed into export; live preview currently plays the original video audio only.</p></div></div>
-          <label className="reel-audio-upload"><input type="file" accept="audio/*" onChange={(e) => loadMusic(e.target.files?.[0])} />♫ {musicUrl ? "Music added · change track" : "Add music track (export)"}</label>
+          <label className="reel-audio-upload"><input id="reel-music-upload" type="file" accept="audio/*" onChange={(e) => loadMusic(e.target.files?.[0])} />♫ {musicUrl ? "Music added · change track" : "Add music track (export)"}</label>
           {musicUrl && <><label className="reel-volume">Export music volume <b>{musicVolume}%</b><input type="range" min="0" max="100" value={musicVolume} onChange={(e) => setMusicVolume(Number(e.target.value))} /></label><button type="button" className="reel-secondary" onClick={() => { setMusicUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return ""; }); setStatus("Background music removed."); }}>Remove music track</button></>}
           <button className="reel-secondary reel-analyze" type="button" onClick={() => runAutoAnalysis()} disabled={!videoUrl || videoLoading || analyzing || busy}>{analyzing ? `Checking… ${analysisProgress}%` : "Check video & audio"}</button>
           
