@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./ReelEditor.css";
-import { analyzeReelMedia, chooseSuggestedSegment } from "../lib/reelAnalysis";
+import { analyzeReelMedia, chooseSuggestedSegment, seekVideo } from "../lib/reelAnalysis";
 import { parseSubtitleText } from "../lib/subtitleParser";
 import { normalizeMontageSegments, updateMontageSegment } from "../lib/montageSegments";
 
@@ -408,14 +408,11 @@ export default function ReelEditor() {
       video.pause();
       video.playbackRate = Number(playbackSpeed);
       video.volume = videoVolume / 100;
-      if (Math.abs(video.currentTime - start) > 0.05) {
-        await new Promise((resolve, reject) => {
-          const timeout = window.setTimeout(() => reject(new Error("Could not seek to the selected start point. Please try again.")), 8000);
-          video.addEventListener("seeked", () => { window.clearTimeout(timeout); resolve(); }, { once: true });
-          video.addEventListener("error", () => { window.clearTimeout(timeout); reject(new Error("The video could not be decoded.")); }, { once: true });
-          video.currentTime = start;
-        });
-      }
+      await seekVideo(video, start, undefined, {
+        timeoutMs: 8000,
+        timeoutMessage: "Could not seek to the selected start point. Please try again.",
+        errorMessage: "The video could not be decoded.",
+      });
       // Separate full-resolution export surface prevents the phone preview from forcing a low-res export.
       const exportCanvas = document.createElement("canvas");
       drawFrame(exportCanvas, Infinity);
@@ -471,7 +468,6 @@ export default function ReelEditor() {
         }
         audioDestination.stream.getAudioTracks().forEach((track) => output.addTrack(track));
         await audioContext.resume();
-        if (music) await music.play();
       }
 
       const mimeCandidates = ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
@@ -544,9 +540,20 @@ export default function ReelEditor() {
         setStatus("Your edited reel is ready. Play the preview below and download only if you approve it.");
         video.pause();
       };
-      recorder.start(1000);
       const ranges = autoSegments.length > 1 ? autoSegments : [{ start, end }];
+      if (!ranges.length) throw new Error("No valid video segments are selected.");
       const totalDuration = ranges.reduce((sum, range) => sum + Math.max(0, range.end - range.start), 0);
+      // Seek before recording starts so the first encoded frame belongs to the
+      // first selected cut rather than whatever frame was previously in preview.
+      await seekVideo(video, ranges[0].start, undefined, {
+        timeoutMs: 8000,
+        timeoutMessage: "Could not seek to the first selected highlight.",
+        errorMessage: "The video could not be decoded for the first selected highlight.",
+      });
+      if (exportCancelledRef.current) throw new Error("Export cancelled. No file was saved.");
+      if (music) await music.play();
+      if (exportCancelledRef.current) throw new Error("Export cancelled. No file was saved.");
+      recorder.start(1000);
       let completedDuration = 0;
       let lastRenderedAt = 0;
       const renderExportFrame = (timestamp) => {
@@ -561,11 +568,10 @@ export default function ReelEditor() {
       for (const range of ranges) {
         if (exportCancelledRef.current || recorder.state === "inactive") break;
         video.pause();
-        await new Promise((resolve, reject) => {
-          const timeout = window.setTimeout(() => reject(new Error("Could not seek to a selected highlight.")), 8000);
-          const done = () => { clearTimeout(timeout); resolve(); };
-          video.addEventListener("seeked", done, { once: true });
-          video.currentTime = range.start;
+        await seekVideo(video, range.start, undefined, {
+          timeoutMs: 8000,
+          timeoutMessage: "Could not seek to a selected highlight.",
+          errorMessage: "The video could not be decoded for a selected highlight.",
         });
         try { await video.play(); }
         catch { throw new Error("Playback could not start for export. Tap Play once, then try Export again."); }
