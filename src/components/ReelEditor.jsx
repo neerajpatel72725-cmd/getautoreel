@@ -643,7 +643,7 @@ export default function ReelEditor() {
   };
 
   return (
-    <section className="reel-editor" id="reel-editor">
+    <section className="reel-editor">
       <div className="reel-studio-shell">
       <div className="reel-studio-dashboard">
         <div className="reel-studio-topline"><span className="reel-studio-mark">✦</span><div><span className="reel-studio-eyebrow">GETAUTOREEL STUDIO</span><h2>What will you create today?</h2><p>Your video workspace. One tap to get started.</p></div><span className="reel-studio-beta">BETA</span></div>
