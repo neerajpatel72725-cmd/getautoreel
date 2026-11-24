@@ -550,6 +550,9 @@ export default function ReelEditor() {
         timeoutMessage: "Could not seek to the first selected highlight.",
         errorMessage: "The video could not be decoded for the first selected highlight.",
       });
+      // Refresh the capture surface at the chosen timestamp before the
+      // MediaRecorder starts, preventing a stale preview frame at the head.
+      drawFrame(exportCanvas, Infinity);
       if (exportCancelledRef.current) throw new Error("Export cancelled. No file was saved.");
       if (music) await music.play();
       if (exportCancelledRef.current) throw new Error("Export cancelled. No file was saved.");
