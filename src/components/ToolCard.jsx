@@ -18,14 +18,13 @@ export default function ToolCard({ tool }) {
         </div>
       </div>
 
-      <div className="badges">
-        {tool.rating != null && (
-          <span className="rating">⭐ {tool.rating}</span>
-        )}
-        <span className="type">{tool.type || "AI Tool"}</span>
-      </div>
-
+      <span className="type">{tool.type || "Check provider website"}</span>
       <p className="description">{tool.description}</p>
+
+      <div className="tool-editorial-notes">
+        <p><strong>Best for:</strong> {tool.bestFor}</p>
+        <p><strong>Before you use it:</strong> {tool.checkBeforeUse}</p>
+      </div>
 
       <a
         className="btn"
@@ -33,7 +32,7 @@ export default function ToolCard({ tool }) {
         target="_blank"
         rel="noopener noreferrer"
       >
-        🚀 Visit Tool
+        Visit official website ↗
       </a>
     </article>
   );
