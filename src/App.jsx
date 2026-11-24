@@ -3,7 +3,6 @@ import tools from "./data/tools";
 
 import Hero from "./components/Hero";
 import Categories from "./components/Categories";
-import AICreatorStudio from "./components/AICreatorStudio";
 const ReelEditor = lazy(() => import("./components/ReelEditor"));
 import SearchBar from "./components/SearchBar";
 import ToolCard from "./components/ToolCard";
@@ -50,7 +49,6 @@ export default function App() {
           <a href="#tools">AI Tools</a>
           <a href="#categories">Categories</a>
           <a href="#reel-editor">Reels Editor</a>
-          <a href="#creator">Creator Studio</a>
         </div>
       </nav>
 
@@ -109,10 +107,6 @@ export default function App() {
               </div>
             )}
           </div>
-        </section>
-
-        <section id="creator" className="creator-section">
-          <AICreatorStudio />
         </section>
 
         <CreatorGuides />
