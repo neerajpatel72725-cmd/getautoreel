@@ -983,3 +983,99 @@ input:focus,select:focus,textarea:focus { border-color:#a99aff; box-shadow:0 0 0
   .hero-orbit { animation:toolmint-orbit 18s linear infinite; }
   @keyframes toolmint-orbit { to { rotate:360deg; } }
 }
+
+
+/* Toolmint monochrome purple refresh + low-cost rendering pass */
+:root {
+  color-scheme: light;
+  --ink: #fffaff;
+  --muted: #eee5ff;
+  --line: rgba(255,255,255,.2);
+  --purple: #c4a7ff;
+  --purple-dark: #a985f5;
+  --surface: #7136c9;
+}
+html {
+  background: #7136c9;
+  scroll-behavior: auto;
+  scroll-padding-top: 76px;
+}
+body {
+  color: #fffaff;
+  background: #7136c9;
+  background-image: linear-gradient(145deg,#7136c9 0%,#783bd0 48%,#6530b8 100%);
+  background-attachment: scroll;
+}
+.navbar {
+  background: #6127ad;
+  border-bottom: 1px solid rgba(255,255,255,.2);
+  box-shadow: 0 3px 12px rgba(45,12,91,.12);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.brand,.menu a,.menu a:hover { color:#fff; }
+.hero {
+  background: linear-gradient(120deg,#8c55e8 0%,#783bd0 52%,#a16aef 100%);
+  border:1px solid rgba(255,255,255,.28);
+  box-shadow:0 10px 26px rgba(50,15,105,.18);
+}
+.hero::before { border-color:rgba(255,255,255,.28); box-shadow:0 0 0 42px rgba(255,255,255,.07),0 0 0 84px rgba(255,255,255,.045); }
+.hero::after { display:none; }
+.hero p,.stat span { color:#f4eaff; }
+.hero .btn { background:#fff; color:#6c2db8; }
+.hero .btn:hover { background:#f3eaff; }
+.hero-secondary-btn { color:#fff; border-color:rgba(255,255,255,.55); }
+.hero-stats,.stat { border-color:rgba(255,255,255,.28); }
+.hero-orbit { display:none; }
+h1,h2,h3,h4,.section-heading h2,.section-heading p,p { color:#fffaff; }
+.eyebrow { color:#f1dcff; }
+.search-wrapper,.category-card,.category-item,.card,.tool-card,.creator-card,.ai-card,
+.empty-state,.closing-banner,.policy-content,.creator-preview {
+  color:#fffaff;
+  border-color:rgba(255,255,255,.22);
+  background:#7d43d2;
+  box-shadow:0 5px 16px rgba(43,12,89,.13);
+}
+.category-card:hover,.category-item:hover,.card:hover,.tool-card:hover {
+  border-color:rgba(255,255,255,.65);
+  box-shadow:0 8px 20px rgba(43,12,89,.2);
+}
+.category-icon,.creator-icon,.ai-icon { background:#a879ed; color:#fff; }
+.tool-logo { background:#fff; }
+.card .tool-header p,.tool-category,.description,.tool-card p,.creator-card li,
+.policy-content p,.policy-content li,.copyright { color:#f0e5ff; }
+.rating { background:#f2dcff; color:#6425a8; }
+.type,.coming { background:#a879ed; color:#fff; }
+input,select,textarea,.search-wrapper input,.search-wrapper select {
+  color:#fff; background:#642bb3; border-color:rgba(255,255,255,.32);
+}
+input::placeholder,textarea::placeholder { color:#e4d1ff; }
+input:focus,select:focus,textarea:focus { border-color:#fff; box-shadow:0 0 0 2px rgba(255,255,255,.2); }
+.btn,button.btn { background:#c09aff; color:#4b1b83; box-shadow:0 4px 12px rgba(43,12,89,.16); }
+.btn:hover,button.btn:hover { background:#d2b8ff; }
+.closing-banner { background:linear-gradient(120deg,#8c55e8,#7136c9); }
+.footer,footer,.footer h2 { color:#fff; border-color:rgba(255,255,255,.2); }
+.footer-links,.footer-links a { color:#f3eaff; }
+.policy-content strong { color:#fff; }
+.creator-preview { color:#f3eaff; }
+
+/* Keep motion cheap: no fixed backgrounds, backdrop filters, rotating layers,
+   giant blur shadows, or blanket transitions that make scrolling feel sluggish. */
+*,*::before,*::after { scroll-behavior:auto !important; }
+button,a,.card,.tool-card,.category-card,.category-item {
+  transition: transform 120ms ease, border-color 120ms ease, background-color 120ms ease;
+}
+button:hover,a:hover,.card:hover,.tool-card:hover,.category-card:hover,.category-item:hover {
+  transition-duration:100ms;
+}
+@media (hover:none) {
+  button:hover,a:hover,.card:hover,.tool-card:hover,.category-card:hover,.category-item:hover {
+    transform:none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after { animation:none !important; transition:none !important; }
+}
+@media(max-width:700px) {
+  .navbar { background:#6127ad; backdrop-filter:none; -webkit-backdrop-filter:none; }
+}
