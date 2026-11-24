@@ -1328,3 +1328,15 @@ input:focus,select:focus,textarea:focus{border-color:#e8b5ff!important;box-shado
 .legal-body h3{color:#ffe0b8!important}.legal-body a{color:#f2c4ff!important}
 .footer{background:rgba(38,14,63,.62)!important;border:1px solid rgba(239,198,255,.2)!important}
 @media(max-width:700px){.navbar{background:rgba(25,8,44,.9)!important}.search-wrapper,.category-card,.category-item,.card,.tool-card,.creator-card,.ai-card,.empty-state,.closing-banner,.policy-content,.creator-preview,.guide-card{backdrop-filter:blur(12px)}}
+
+
+/* Full-width responsive canvas: prevent mobile/desktop-site narrow-column rendering. */
+html,body,#root{width:100%;max-width:100%;min-width:320px}
+body{margin:0;overflow-x:hidden}
+#root{min-height:100vh;display:block}
+.navbar{width:100%;max-width:none}
+main.container{display:block;width:min(1180px,92vw)!important;max-width:1180px;margin-left:auto!important;margin-right:auto!important}
+@media(max-width:700px){
+  .navbar{width:100%;padding-left:4vw;padding-right:4vw}
+  main.container{width:92vw!important;max-width:92vw;margin-left:auto!important;margin-right:auto!important}
+}
