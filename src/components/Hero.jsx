@@ -15,7 +15,6 @@ export default function Hero({ totalTools }) {
           <div className="stat"><h3>{totalTools}+</h3><span>Tools to discover</span></div>
         </div>
       </div>
-      <div className="hero-orbit" aria-hidden="true"><span>✦</span><i /><b /></div>
     </section>
   );
 }
