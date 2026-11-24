@@ -10,6 +10,8 @@ import ThumbnailGenerator from "./ThumbnailGenerator";
 import SearchBar from "./components/SearchBar";
 import ToolCard from "./components/ToolCard";
 import Footer from "./components/Footer";
+import CreatorGuides from "./components/CreatorGuides";
+import AdSenseLoader from "./components/AdSenseLoader";
 
 export default function App() {
   const [search, setSearch] = useState("");
@@ -28,6 +30,7 @@ export default function App() {
 
   return (
     <>
+      <AdSenseLoader />
       <nav className="navbar">
         <a href="#home" className="brand">
           ✦ GetAutoReel
@@ -114,6 +117,8 @@ export default function App() {
           <ThumbnailGenerator />
         </section>
 
+        <CreatorGuides />
+
         <OurAITools />
 
         <section className="closing-banner">
@@ -138,15 +143,20 @@ export default function App() {
         </section>
         <section id="privacy" className="policy-content">
           <h2>Privacy Policy</h2>
-          <p><strong>Last updated: November 22, 2026</strong></p>
+          <p><strong>Last updated: November 24, 2026</strong></p>
           <p>GetAutoReel aims to process video edits in your browser. Video files selected in the Reel Editor are handled locally by your browser for preview and export; the editor is not designed to upload your video files to our servers.</p>
           <ul>
             <li>We do not ask you to enter passwords or sensitive personal information to use the basic editor.</li>
             <li>Third-party AI tool listings may link to external websites. Those websites have their own privacy practices.</li>
             <li>Browser storage, temporary media URLs and processing resources may be used to provide editor functionality. Closing the page or refreshing may clear your current editing session.</li>
-            <li>We may update this policy as analytics, advertising or account features are added. Those features will be described here before or when they are introduced.</li>
+            <li>We may use essential browser storage and, if enabled in a future release, analytics or advertising technologies. This policy will be updated when those services are activated.</li>
           </ul>
-          <p>Do not upload content you do not have permission to edit. This policy is a general notice and may be updated as the service and its providers are finalized.</p>
+          <h3>Advertising and third-party cookies</h3>
+          <p>When Google AdSense or another advertising provider is enabled on this site, that provider and its partners may use cookies, web beacons, IP addresses or similar identifiers to serve, measure and help prevent repeated ads. Third-party vendors may use information about visits to this and other websites to show relevant advertisements. Advertising technologies are not active until the site is configured and approved for them.</p>
+          <p>Where personalized advertising is available, you can review or change Google ad personalization choices in <a href="https://adssettings.google.com/" target="_blank" rel="noreferrer">Google Ads Settings</a>. You can also learn <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noreferrer">how Google uses information from sites or apps that use its services</a>, or visit <a href="https://www.aboutads.info/choices/" target="_blank" rel="noreferrer">AboutAds choices</a> for participating companies.</p>
+          <h3>External services and links</h3>
+          <p>Links to AI tools and other external services are provided for convenience. Those providers operate their own websites and determine their own privacy, cookie and data practices. Review their policies before sharing information with them.</p>
+          <p>Do not upload content you do not have permission to edit. This policy is a general notice and will be revised when specific analytics, advertising or account services are activated. Contact details for privacy questions will be published here once an official support address is configured.</p>
         </section>
         <section id="terms" className="policy-content">
           <h2>Terms of Use</h2>
