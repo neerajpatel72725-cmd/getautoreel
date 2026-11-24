@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import tools from "./data/tools";
 
 import Hero from "./components/Hero";
 import OurAITools from "./components/OurAITools";
 import Categories from "./components/Categories";
 import AICreatorStudio from "./components/AICreatorStudio";
-import ReelEditor from "./components/ReelEditor";
+const ReelEditor = lazy(() => import("./components/ReelEditor"));
 import SearchBar from "./components/SearchBar";
 import ToolCard from "./components/ToolCard";
 import Footer from "./components/Footer";
@@ -49,7 +49,7 @@ export default function App() {
           <Hero totalTools={filtered.length} />
         </section>
 
-        <ReelEditor />
+        <Suspense fallback={<section className="reel-editor-loading" aria-live="polite" aria-busy="true"><span className="reel-loading-spinner" /><div><strong>Reels Studio is loading…</strong><p>The editor loads only when needed to keep the website fast.</p></div></section>}><ReelEditor /></Suspense>
 
         <section className="tool-discovery">
           <div className="section-heading">
