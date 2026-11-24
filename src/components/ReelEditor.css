@@ -213,3 +213,40 @@
 .reel-export:hover,.reel-auto-create:hover{background:linear-gradient(105deg,#5044ce,#7656ca)}
 @media(max-width:650px){.reel-studio-tools{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.reel-studio-tool{min-height:112px;padding:12px}.reel-studio-dashboard{border-radius:20px}}
 @media(max-width:360px){.reel-studio-tool{min-height:108px;padding:10px}.reel-tool-icon{width:36px;height:36px}}
+
+
+/* Captions live inside the creator dashboard; no duplicate panel below preview. */
+.reel-studio-caption-tools{display:grid;gap:10px;margin:14px 0 2px;padding:14px;border:1px solid #ffffff9c;border-radius:17px;background:linear-gradient(145deg,#ffffff38,#ffffff18);box-shadow:inset 0 1px 0 #ffffffa0,0 8px 20px #25135c20;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);animation:studio-panel-in .28s ease-out both}
+.reel-studio-caption-toggle{display:flex;align-items:center;gap:9px;color:#fff;font-size:12px;font-weight:700}
+.reel-studio-caption-toggle input{width:19px;height:19px;accent-color:#bfa5ff}
+.reel-studio-caption-tools textarea{width:100%;min-height:66px;padding:12px 13px;border:1px solid #ffffffa6;border-radius:12px;background:#ffffffed;color:#30265f;font:inherit;font-size:14px;resize:vertical}
+.reel-studio-caption-tools textarea::placeholder{color:#8277a5}
+.reel-studio-caption-tools textarea:focus{outline:3px solid #f4d2ff88;border-color:#fff}
+.reel-studio-caption-tools .reel-caption-presets{margin:0;gap:7px}
+.reel-studio-caption-tools .reel-caption-presets .reel-secondary{min-height:36px;padding:7px 13px;border:1px solid #ffffffa0;border-radius:10px;background:#ffffffeb;color:#5141a5;font-weight:800}
+.reel-studio-caption-tools>small{color:#f1eaff;font-size:10px;line-height:1.5}
+.reel-studio-tool:nth-child(1) .reel-tool-icon{animation:studio-float-a 3.7s ease-in-out infinite}
+.reel-studio-tool:nth-child(2) .reel-tool-icon{animation:studio-float-b 4.2s ease-in-out infinite}
+.reel-studio-tool:nth-child(3) .reel-tool-icon{animation:studio-float-c 3.9s ease-in-out infinite}
+.reel-studio-tool:nth-child(4) .reel-tool-icon{animation:studio-float-b 4.5s ease-in-out infinite}
+.reel-studio-mark{animation:studio-sparkle 5s ease-in-out infinite}
+.reel-studio-dashboard{background-size:180% 180%;animation:studio-gradient 14s ease infinite}
+.reel-studio-dashboard:before{animation:studio-orbit 12s ease-in-out infinite alternate}
+@keyframes studio-float-a{0%,100%{transform:translate(0,0) rotate(-4deg)}50%{transform:translate(3px,-6px) rotate(5deg)}}
+@keyframes studio-float-b{0%,100%{transform:translate(0,0) rotate(3deg)}50%{transform:translate(-3px,-5px) rotate(-5deg)}}
+@keyframes studio-float-c{0%,100%{transform:translate(0,0) rotate(-2deg)}50%{transform:translate(2px,-7px) rotate(4deg)}}
+@keyframes studio-sparkle{0%,100%{transform:rotate(0) scale(1)}50%{transform:rotate(14deg) scale(1.08)}}
+@keyframes studio-gradient{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes studio-orbit{from{transform:translate(0,0)}to{transform:translate(-35px,24px)}}
+@keyframes studio-panel-in{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}
+.reel-studio-dashboard{background-image:linear-gradient(128deg,#30256f 0%,#5945b8 48%,#8b69d9 100%)}
+.reel-preview-panel{border-color:#bdb2fa;box-shadow:0 12px 30px #6558e822}
+.reel-preview-top .reel-live-dot{color:#a68aff}
+.reel-upload{border-color:#a99af4;background:linear-gradient(135deg,#f1edff,#fff)}
+.reel-advanced{border-color:#d8d0fa;background:linear-gradient(145deg,#fbfaff,#fff)}
+.reel-advanced>summary{color:#5745bd}
+.reel-advanced>summary:before{background:#eee9ff}
+.reel-export,.reel-auto-create{background:linear-gradient(105deg,#6252dc,#9668df)}
+.reel-status{border-color:#dcd4fa;background:#f8f5ff;color:#443a91}
+@media(prefers-reduced-motion:reduce){.reel-studio-dashboard,.reel-studio-dashboard:before,.reel-studio-mark,.reel-studio-tool .reel-tool-icon,.reel-studio-caption-tools{animation:none!important;transition:none!important}}
+@media(max-width:480px){.reel-studio-caption-tools{padding:11px}.reel-studio-caption-tools .reel-caption-presets .reel-secondary{flex:1 1 auto}}

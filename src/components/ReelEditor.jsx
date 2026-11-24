@@ -31,6 +31,7 @@ export default function ReelEditor() {
   const [end, setEnd] = useState(0);
   const [ratio, setRatio] = useState("original");
   const [caption, setCaption] = useState("");
+  const [showCaptionTools, setShowCaptionTools] = useState(false);
   const [captionEnabled, setCaptionEnabled] = useState(true);
   const [style, setStyle] = useState("Clean & cinematic");
   const [musicVolume, setMusicVolume] = useState(35);
@@ -614,7 +615,7 @@ export default function ReelEditor() {
           <button type="button" className="reel-studio-tool reel-tool-auto" onClick={() => { if (!videoUrl) document.getElementById("reel-video-upload")?.scrollIntoView({behavior:"smooth",block:"center"}); else document.getElementById("reel-create-action")?.scrollIntoView({behavior:"smooth",block:"center"}); }} disabled={busy || analyzing}>
             <span className="reel-tool-icon">✦</span><strong>Auto Reel</strong><small>{videoUrl ? "Create a first cut" : "Turn a clip into a reel"}</small><span className="reel-tool-tag">ONE TAP</span>
           </button>
-          <button type="button" className="reel-studio-tool" onClick={() => { document.getElementById("reel-quick-caption-input")?.scrollIntoView({behavior:"smooth",block:"center"}); document.getElementById("reel-quick-caption-input")?.focus({preventScroll:true}); }}>
+          <button type="button" className="reel-studio-tool" onClick={() => setShowCaptionTools((value) => !value)}>
             <span className="reel-tool-icon">✍️</span><strong>Text & captions</strong><small>Add your own words</small>
           </button>
           <button type="button" className="reel-studio-tool" onClick={() => { const panel=document.getElementById("reel-advanced-tools"); if(panel) panel.open=true; document.getElementById("reel-music-upload")?.scrollIntoView({behavior:"smooth",block:"center"}); }}>
@@ -624,7 +625,18 @@ export default function ReelEditor() {
             <span className="reel-tool-icon">▣</span><strong>Video size</strong><small>Reels, Shorts & more</small>
           </button>
         </div>
-        <div className="reel-studio-trust"><span>🔒 Files stay on your device</span><span>•</span><span>MP4, MOV and more</span><span>•</span><span>Preview before download</span></div>
+        {showCaptionTools && <div className="reel-studio-caption-tools" id="reel-studio-caption-tools">
+          <label className="reel-studio-caption-toggle"><input type="checkbox" checked={captionEnabled} onChange={(e) => setCaptionEnabled(e.target.checked)} /> Show text on video</label>
+          <textarea id="reel-quick-caption-input" aria-label="Caption text" rows="2" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="✍️ Type your caption here…" />
+          <div className="reel-caption-presets" aria-label="Quick caption templates">
+            <button type="button" className="reel-secondary" onClick={() => { setCaption("Wait for it… 👀"); setCaptionEnabled(true); setCaptionStart(start); setCaptionEnd(end || duration); }}>Hook</button>
+            <button type="button" className="reel-secondary" onClick={() => { setCaption("A moment worth remembering ✨"); setCaptionEnabled(true); setCaptionStart(start); setCaptionEnd(end || duration); }}>Story</button>
+            <button type="button" className="reel-secondary" onClick={() => { setCaption("Follow for more 💫"); setCaptionEnabled(true); setCaptionStart(start); setCaptionEnd(end || duration); }}>Follow</button>
+            <button type="button" className="reel-secondary" onClick={() => { setCaption(""); setCaptionEnabled(false); }}>Clear</button>
+          </div>
+          <small>Text appears in your preview and exported video. For timed dialogue, import an SRT/VTT file in More editing tools.</small>
+        </div>}
+      <div className="reel-studio-trust"><span>🔒 Files stay on your device</span><span>•</span><span>MP4, MOV and more</span><span>•</span><span>Preview before download</span></div>
       </div>
       <div className="reel-workspace">
         <div className="reel-controls-panel">
@@ -662,18 +674,6 @@ export default function ReelEditor() {
             <input aria-label="Scrub video preview" type="range" min={start} max={Math.max(end, start + 0.1)} step="0.05" value={Math.min(videoRef.current?.currentTime || start, end || duration)} onChange={(e) => { if (videoRef.current) { videoRef.current.currentTime = Number(e.target.value); drawFrame(); } }} />
           </div>}
         </div>
-          <div className="reel-quick-captions" aria-labelledby="reel-quick-caption-title">
-            <div><strong id="reel-quick-caption-title">✍️ Add captions or on-screen text</strong><small>Type your own text and see it in the preview and exported video.</small></div>
-            <label className="reel-caption-toggle"><input type="checkbox" checked={captionEnabled} onChange={(e) => setCaptionEnabled(e.target.checked)} /> Show text on video</label>
-            <textarea id="reel-quick-caption-input" aria-label="Caption text" rows="3" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Type your caption here…" />
-            <div className="reel-caption-presets" aria-label="Quick caption templates">
-              <button type="button" className="reel-secondary" onClick={() => { setCaption("Wait for it… 👀"); setCaptionEnabled(true); setCaptionStart(start); setCaptionEnd(end || duration); }}>Hook</button>
-              <button type="button" className="reel-secondary" onClick={() => { setCaption("A moment worth remembering ✨"); setCaptionEnabled(true); setCaptionStart(start); setCaptionEnd(end || duration); }}>Story</button>
-              <button type="button" className="reel-secondary" onClick={() => { setCaption("Follow for more 💫"); setCaptionEnabled(true); setCaptionStart(start); setCaptionEnd(end || duration); }}>Follow</button>
-              <button type="button" className="reel-secondary" onClick={() => { setCaption(""); setCaptionEnabled(false); }}>Clear</button>
-            </div>
-            <small className="reel-caption-disclaimer">Automatic speech-to-text is not connected yet. These controls add editable text; import an SRT/VTT file in Advanced options for timed dialogue captions.</small>
-          </div>
           {videoName && <div className="reel-file-meta"><span>▣</span><span title={videoName}>{videoName} · {(videoSize / (1024 * 1024)).toFixed(1)} MB{videoDimensions ? ` · ${videoDimensions}` : ""}</span><button type="button" onClick={removeVideo}>Remove</button></div>}
           {videoLoading && <p className="reel-loading" role="status"><span className="reel-spinner" /> Preparing video preview… Large 4K files may take longer on mobile.</p>}
           <details className="reel-advanced" id="reel-advanced-tools"><summary>⚙️ More editing tools <span>Optional</span></summary>
