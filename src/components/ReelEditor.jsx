@@ -664,7 +664,7 @@ export default function ReelEditor() {
           </div>
           {videoName && <div className="reel-file-meta"><span>▣</span><span title={videoName}>{videoName} · {(videoSize / (1024 * 1024)).toFixed(1)} MB{videoDimensions ? ` · ${videoDimensions}` : ""}</span><button type="button" onClick={removeVideo}>Remove</button></div>}
           {videoLoading && <p className="reel-loading" role="status"><span className="reel-spinner" /> Preparing video preview… Large 4K files may take longer on mobile.</p>}
-          <details className="reel-advanced" open><summary>Advanced options (optional) · Trim, format, captions & music</summary>
+          <details className="reel-advanced"><summary>⚙️ More editing tools <span>Optional</span></summary>
           {videoUrl && <div className="reel-step"><span>02</span><div><h3>Fine-tune (optional)</h3><p>Most people can skip this. Change trim, format, captions or music if needed.</p></div></div>}
           {videoUrl && autoSegments.length <= 1 && <div className="reel-trim">
             <label>Start <b>{formatTime(start)}</b><input type="range" min="0" max={Math.max(duration, 0.1)} step="0.1" value={start} onChange={(e) => { const v = Number(e.target.value); setStart(Math.min(v, Math.max(0, end - 0.2))); }} /></label>
