@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import tools from "./data/tools";
 
 import Hero from "./components/Hero";
@@ -15,6 +15,25 @@ import AdSenseLoader from "./components/AdSenseLoader";
 export default function App() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
+  const [shouldLoadEditor, setShouldLoadEditor] = useState(false);
+  const editorSectionRef = useRef(null);
+
+  useEffect(() => {
+    const section = editorSectionRef.current;
+    if (!section) return undefined;
+    if (!("IntersectionObserver" in window)) {
+      setShouldLoadEditor(true);
+      return undefined;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        setShouldLoadEditor(true);
+        observer.disconnect();
+      }
+    }, { rootMargin: "700px 0px" });
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
 
   const filtered = tools.filter((tool) => {
     const matchesSearch = tool.name
@@ -49,7 +68,7 @@ export default function App() {
           <Hero totalTools={filtered.length} />
         </section>
 
-        <Suspense fallback={<section className="reel-editor-loading" aria-live="polite" aria-busy="true"><span className="reel-loading-spinner" /><div><strong>Reels Studio is loading…</strong><p>The editor loads only when needed to keep the website fast.</p></div></section>}><ReelEditor /></Suspense>
+        <section id="reel-editor" ref={editorSectionRef} aria-label="Reels Studio">{shouldLoadEditor ? <Suspense fallback={<div className="reel-editor-loading" aria-live="polite" aria-busy="true"><span className="reel-loading-spinner" /><div><strong>Reels Studio is loading…</strong><p>Preparing the editor.</p></div></div>}><ReelEditor /></Suspense> : <div className="reel-editor-loading" aria-live="polite"><span className="reel-loading-spinner" /><div><strong>Reels Studio is ready when you are</strong><p>The editor loads as you get close to it, helping the home page open faster.</p></div></div>}</section>
 
         <section className="tool-discovery">
           <div className="section-heading">
