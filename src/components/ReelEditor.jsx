@@ -610,10 +610,17 @@ export default function ReelEditor() {
       <div className="reel-heading">
         <span className="reel-kicker">GetAutoReel CREATOR TOOLS · BETA</span>
         <h2>Make a Reel</h2>
-        <p>Upload once. We’ll automatically turn it into a ready-to-share reel—then preview and save.</p>
+        <p>Upload a video, create a first cut, add text, preview the edit and export it. Automatic speech captions are not available yet.</p>
       </div>
       <div className="reel-workspace">
-        <div className="reel-preview-panel">
+        <div className="reel-controls-panel">
+          <div className="reel-simple-intro"><strong>Just 2 steps</strong><ol><li>Upload your video.</li><li>Tap <b>Create my Reel</b>, preview it, then save.</li></ol><small>No editing skills or setup needed. Your video stays on this device.</small></div>
+          <div className="reel-step"><span>01</span><div><h3>Choose your video</h3><p>Select a video from your device.</p></div></div>
+          <label className={`reel-upload ${dragOver ? "is-dragging" : ""}`} onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={(e) => { e.preventDefault(); setDragOver(false); loadVideo(e.dataTransfer.files?.[0]); }}>
+            <input type="file" accept="video/*" onChange={(e) => { loadVideo(e.target.files?.[0]); e.target.value = ""; }} />
+            <span>＋</span><strong>{videoUrl ? "Choose another video" : "Choose video"}</strong><small>Files stay on your device</small>
+          </label>
+                  <div className="reel-preview-panel">
           <div className="reel-preview-top"><span>LIVE PREVIEW</span><span className="reel-live-dot">● LOCAL EDITING</span></div>
           <div className={`reel-stage stage-${ratio.replace(":", "-")}`}>
             <video ref={videoRef} src={videoUrl || undefined} preload="metadata" onLoadStart={() => videoUrl && setVideoLoading(true)} onLoadedMetadata={onMetadata} onLoadedData={onFirstFrameReady} onError={onVideoError}
@@ -643,16 +650,21 @@ export default function ReelEditor() {
             <input aria-label="Scrub video preview" type="range" min={start} max={Math.max(end, start + 0.1)} step="0.05" value={Math.min(videoRef.current?.currentTime || start, end || duration)} onChange={(e) => { if (videoRef.current) { videoRef.current.currentTime = Number(e.target.value); drawFrame(); } }} />
           </div>}
         </div>
-        <div className="reel-controls-panel">
-          <div className="reel-simple-intro"><strong>Just 2 steps</strong><ol><li>Upload your video.</li><li>Tap <b>Create my Reel</b>, preview it, then save.</li></ol><small>No editing skills or setup needed. Your video stays on this device.</small></div>
-          <div className="reel-step"><span>01</span><div><h3>Choose your video</h3><p>Select a video from your device.</p></div></div>
-          <label className={`reel-upload ${dragOver ? "is-dragging" : ""}`} onDragOver={(e) => { e.preventDefault(); setDragOver(true); }} onDragLeave={() => setDragOver(false)} onDrop={(e) => { e.preventDefault(); setDragOver(false); loadVideo(e.dataTransfer.files?.[0]); }}>
-            <input type="file" accept="video/*" onChange={(e) => { loadVideo(e.target.files?.[0]); e.target.value = ""; }} />
-            <span>＋</span><strong>{videoUrl ? "Choose another video" : "Choose video"}</strong><small>Files stay on your device</small>
-          </label>
+          <div className="reel-quick-captions" aria-labelledby="reel-quick-caption-title">
+            <div><strong id="reel-quick-caption-title">✍️ Add captions or on-screen text</strong><small>Type your own text and see it in the preview and exported video.</small></div>
+            <label className="reel-caption-toggle"><input type="checkbox" checked={captionEnabled} onChange={(e) => setCaptionEnabled(e.target.checked)} /> Show text on video</label>
+            <textarea aria-label="Caption text" rows="3" value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Type your caption here…" />
+            <div className="reel-caption-presets" aria-label="Quick caption templates">
+              <button type="button" className="reel-secondary" onClick={() => { setCaption("Wait for it… 👀"); setCaptionEnabled(true); setCaptionStart(start); setCaptionEnd(end || duration); }}>Hook</button>
+              <button type="button" className="reel-secondary" onClick={() => { setCaption("A moment worth remembering ✨"); setCaptionEnabled(true); setCaptionStart(start); setCaptionEnd(end || duration); }}>Story</button>
+              <button type="button" className="reel-secondary" onClick={() => { setCaption("Follow for more 💫"); setCaptionEnabled(true); setCaptionStart(start); setCaptionEnd(end || duration); }}>Follow</button>
+              <button type="button" className="reel-secondary" onClick={() => { setCaption(""); setCaptionEnabled(false); }}>Clear</button>
+            </div>
+            <small className="reel-caption-disclaimer">Automatic speech-to-text is not connected yet. These controls add editable text; import an SRT/VTT file in Advanced options for timed dialogue captions.</small>
+          </div>
           {videoName && <div className="reel-file-meta"><span>▣</span><span title={videoName}>{videoName} · {(videoSize / (1024 * 1024)).toFixed(1)} MB{videoDimensions ? ` · ${videoDimensions}` : ""}</span><button type="button" onClick={removeVideo}>Remove</button></div>}
           {videoLoading && <p className="reel-loading" role="status"><span className="reel-spinner" /> Preparing video preview… Large 4K files may take longer on mobile.</p>}
-          <details className="reel-advanced"><summary>Advanced options (optional) · Trim, format, captions & music</summary>
+          <details className="reel-advanced" open><summary>Advanced options (optional) · Trim, format, captions & music</summary>
           {videoUrl && <div className="reel-step"><span>02</span><div><h3>Fine-tune (optional)</h3><p>Most people can skip this. Change trim, format, captions or music if needed.</p></div></div>}
           {videoUrl && autoSegments.length <= 1 && <div className="reel-trim">
             <label>Start <b>{formatTime(start)}</b><input type="range" min="0" max={Math.max(duration, 0.1)} step="0.1" value={start} onChange={(e) => { const v = Number(e.target.value); setStart(Math.min(v, Math.max(0, end - 0.2))); }} /></label>

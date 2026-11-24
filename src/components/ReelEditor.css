@@ -101,3 +101,25 @@
 .reel-montage-note{margin:0;padding:10px 12px;border:1px solid #dcd8fa;border-radius:9px;background:#f7f6ff;color:#5146bd;font-size:11px;line-height:1.5}
 
 .reel-cancel-analysis{width:100%;border-color:#e6b8b8;color:#a52b36;background:#fff7f7;font-weight:700}
+
+
+/* Keep the upload action first and place the live preview immediately below it. */
+.reel-workspace{display:block}
+.reel-controls-panel{display:grid;gap:14px}
+.reel-preview-panel{position:static;margin:0 0 4px}
+.reel-stage{height:min(68vh,620px)}
+.reel-quick-captions{display:grid;gap:10px;padding:14px;border:1px solid #e5e2fb;border-radius:12px;background:#faf9ff}
+.reel-quick-captions>div:first-child{display:grid;gap:4px}
+.reel-quick-captions strong{font-size:13px;color:#37316f}
+.reel-quick-captions small{font-size:11px;color:#73798c;line-height:1.5}
+.reel-quick-captions textarea{width:100%;min-height:76px;padding:11px 12px;border:1px solid #dedcf2;border-radius:9px;background:#fff;color:#202338;font:inherit;font-size:13px;resize:vertical}
+.reel-quick-captions textarea:focus{outline:3px solid #6558e822;border-color:#8177ec}
+.reel-quick-captions .reel-caption-toggle{margin:0}
+.reel-caption-presets{display:flex;flex-wrap:wrap;gap:7px}
+.reel-caption-presets .reel-secondary{font-size:11px}
+.reel-caption-disclaimer{padding-top:2px}
+.reel-advanced{border:1px solid #e8e8f2;border-radius:10px;padding:11px;background:#fff}
+.reel-advanced>summary{cursor:pointer;color:#5146bd;font-size:12px;font-weight:800}
+.reel-advanced[open]>summary{margin-bottom:14px}
+@media(max-width:800px){.reel-stage{height:min(58vh,520px);min-height:260px}}
+@media(max-width:420px){.reel-editor{padding:13px}.reel-quick-captions{padding:11px}.reel-caption-presets button{flex:1 1 auto}}
