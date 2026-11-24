@@ -609,6 +609,7 @@ export default function ReelEditor() {
 
   return (
     <section className="reel-editor" id="reel-editor">
+      <div className="reel-studio-shell">
       <div className="reel-studio-dashboard">
         <div className="reel-studio-topline"><span className="reel-studio-mark">✦</span><div><span className="reel-studio-eyebrow">GETAUTOREEL STUDIO</span><h2>What will you create today?</h2><p>Your video workspace. One tap to get started.</p></div><span className="reel-studio-beta">BETA</span></div>
         <div className="reel-studio-tools" aria-label="Quick editing tools">
@@ -708,6 +709,7 @@ export default function ReelEditor() {
           <p className="reel-status" role="status">{status || "Your files are processed locally in this browser."}</p>
           <p className="reel-note">Note: Reel creation currently uses on-device scene and audio analysis heuristics—not semantic AI highlights or speech-to-text captions. We’re improving automatic editing.</p>
         </div>
+      </div>
       </div>
     </section>
   );
