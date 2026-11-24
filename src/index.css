@@ -1345,3 +1345,11 @@ main.container{display:block;width:min(1180px,92vw)!important;max-width:1180px;m
 .reel-editor-loading p{margin:5px 0 0;font-size:13px}
 .reel-loading-spinner{width:22px;height:22px;flex:0 0 22px;border:3px solid #e7e4ff;border-top-color:var(--purple);border-radius:50%;animation:reel-loading-spin .8s linear infinite}
 @keyframes reel-loading-spin{to{transform:rotate(360deg)}}
+
+
+/* Clear editorial notes for the independent tool directory. */
+.tool-editorial-notes{display:grid;gap:8px;margin:14px 0;padding:12px 13px;border:1px solid rgba(220,190,245,.24);border-radius:12px;background:rgba(255,255,255,.06)}
+.tool-editorial-notes p{margin:0;font-size:13px;line-height:1.6;color:inherit}
+.tool-editorial-notes strong{color:inherit}
+.card .type{display:inline-flex;max-width:max-content;margin:10px 0 0;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.card .btn{margin-top:10px}
