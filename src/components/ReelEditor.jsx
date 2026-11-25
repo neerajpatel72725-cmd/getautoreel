@@ -697,10 +697,19 @@ export default function ReelEditor() {
             <input ref={videoPickerRef} type="file" accept="video/*" onChange={(e) => { loadVideo(e.target.files?.[0]); e.target.value = ""; }} />
             <span>＋</span><strong>{videoUrl ? "Choose another video" : "Choose video"}</strong><small>Files stay on your device</small>
           </label>
-          <video className="reel-source-media" ref={videoRef} src={videoUrl || undefined} preload="metadata" onLoadStart={() => videoUrl && setVideoLoading(true)} onLoadedMetadata={onMetadata} onLoadedData={onFirstFrameReady} onError={onVideoError}
-            onTimeUpdate={(e) => { const t=e.currentTarget.currentTime;setCurrentTime(t);if(!busy&&end>start&&t>=end){e.currentTarget.pause();e.currentTarget.currentTime=end;}}}
-            onPlay={() => {cancelAnimationFrame(frameRef.current);previewFrame();}} onPause={() => cancelAnimationFrame(frameRef.current)} onSeeked={() => drawFrame()} playsInline controls={false} />
-          <canvas className="reel-source-canvas" ref={canvasRef} aria-label="Edited reel rendering surface" />
+          <div className="reel-stage" aria-label="Video preview">
+            <video className="reel-source-media" ref={videoRef} src={videoUrl || undefined} preload="metadata" onLoadStart={() => videoUrl && setVideoLoading(true)} onLoadedMetadata={onMetadata} onLoadedData={onFirstFrameReady} onError={onVideoError}
+              onTimeUpdate={(e) => { const t=e.currentTarget.currentTime;setCurrentTime(t);if(!busy&&end>start&&t>=end){e.currentTarget.pause();e.currentTarget.currentTime=end;}}}
+              onPlay={() => {cancelAnimationFrame(frameRef.current);previewFrame();}} onPause={() => cancelAnimationFrame(frameRef.current)} onSeeked={() => drawFrame()} playsInline controls={false} />
+            <canvas className="reel-source-canvas" ref={canvasRef} aria-label="Edited reel preview" />
+            {!videoUrl && <div className="reel-empty"><span>▶</span><strong>Your reel preview appears here</strong><small>Choose a video to start editing</small></div>}
+            {videoUrl && videoLoading && <div className="reel-preview-loading">Preparing preview…</div>}
+          </div>
+          {videoUrl && <div className="reel-transport" aria-label="Preview playback controls">
+            <button type="button" className="reel-secondary" onClick={seekToStart} disabled={videoLoading || busy || !duration}>▶ Play preview</button>
+            <button type="button" className="reel-secondary" onClick={() => videoRef.current?.pause()} disabled={videoLoading || busy || !duration}>Ⅱ Pause</button>
+            <button type="button" className="reel-secondary" onClick={() => { const video=videoRef.current; if(video){video.pause();video.currentTime=start;setCurrentTime(start);drawFrame();} }} disabled={videoLoading || busy || !duration}>↺ Restart</button>
+          </div>}
           {videoName && <div className="reel-file-meta"><span>▣</span><span title={videoName}>{videoName} · {(videoSize / (1024 * 1024)).toFixed(1)} MB{videoDimensions ? ` · ${videoDimensions}` : ""}</span><button type="button" onClick={removeVideo}>Remove</button></div>}
           {videoLoading && <p className="reel-loading" role="status"><span className="reel-spinner" /> Preparing your video… Large 4K files may take longer on mobile.</p>}
           <details className="reel-advanced" id="reel-advanced-tools"><summary>⚙️ More editing tools <span>Optional</span></summary>
