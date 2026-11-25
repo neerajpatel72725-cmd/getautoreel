@@ -143,7 +143,7 @@ export default function App() {
             passwords, payment details, private video files or other sensitive
             information in a public report.
           </p>
-          <a href="https://github.com/neerajpatel72725-cmd/toolmint-ai/issues/new" className="btn" target="_blank" rel="noopener noreferrer">
+          <a href="https://github.com/neerajpatel72725-cmd/getautoreel/issues/new" className="btn" target="_blank" rel="noopener noreferrer">
             Report a website issue →
           </a>
           <p><small>The issue tracker is public and is intended for website feedback, not private account or payment support.</small></p>
