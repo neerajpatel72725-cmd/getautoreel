@@ -1,5 +1,17 @@
 const guides = [
   {
+    title: "How to edit and export a video with GetAutoReel",
+    intro: "The editor works in your browser. Follow these steps with a short test clip first so you can check compatibility and output quality on your device.",
+    steps: [
+      ["Choose a supported video", "Open Reel Studio and select a video file from your device. MP4 with H.264 video is a practical compatibility choice. The editor accepts video files up to 500 MB, but large files may be slow or exceed phone memory."],
+      ["Wait for the preview", "Keep the page open while the video metadata and first frame load. If the browser reports an unsupported codec, try a standard MP4 export from your camera or editing app."],
+      ["Set the section and format", "Use the trim controls to choose the portion you want. Select 9:16 for vertical short-form platforms, or keep the original aspect ratio when that better fits your footage."],
+      ["Add captions or music", "Type a short caption or load an SRT/WebVTT subtitle file. You can optionally add an audio file. Make sure you have permission to publish all footage, music and other assets."],
+      ["Preview, export and review", "Play the preview, check the start and end, then create the export. Play the downloaded file from beginning to end before sharing it. Export support and quality depend on your browser, device memory and codecs."]
+    ],
+    takeaway: "Start with a short clip, check the exported file, and only then move on to longer or higher-resolution footage."
+  },
+  {
     title: "Choose the right aspect ratio before editing",
     intro: "The frame shape affects how a video looks in a feed, how much of the original scene remains visible, and whether captions cover important details.",
     steps: [
