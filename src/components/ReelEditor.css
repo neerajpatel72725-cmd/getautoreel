@@ -269,7 +269,9 @@
 .reel-studio-file-button input{max-width:100%;margin-left:auto;color:#fff;font-size:11px}
 .reel-studio-caption-tools>small{color:#f8eaff;font-size:10px;line-height:1.5}
 .reel-studio-trust{color:#f5eaff}
-.reel-source-media,.reel-source-canvas{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;left:-10000px!important;top:0!important}
+.reel-source-media{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;left:-10000px!important;top:0!important}
+.reel-stage .reel-source-canvas{position:relative!important;left:auto!important;top:auto!important;width:auto!important;height:auto!important;max-width:100%;max-height:100%;opacity:1!important;pointer-events:none!important;object-fit:contain;z-index:1}
+.reel-preview-loading{position:absolute;z-index:2;padding:10px 14px;border:1px solid #ffffff40;border-radius:10px;background:#17112dcc;color:#fff;font-size:12px}
 .reel-studio-result{display:grid;gap:10px;margin-top:17px;padding:14px;border:1px solid #ffffffd4;border-radius:18px;background:linear-gradient(145deg,#ffffff44,#ffffff22);box-shadow:0 12px 28px #1a0a493d;animation:studio-panel-in .4s ease-out both}
 .reel-studio-result strong{color:#fff;font-size:15px}.reel-studio-result video{width:100%;max-height:420px;aspect-ratio:9/16;object-fit:contain;border:1px solid #ffffff8a;border-radius:14px;background:#120d25}
 .reel-studio-result button{min-height:46px;border:0;border-radius:12px;background:linear-gradient(100deg,#fff0a9,#ffc5ed);color:#43236f;font-weight:900}
