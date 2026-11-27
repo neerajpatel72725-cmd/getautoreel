@@ -3,8 +3,9 @@ export default function Hero() {
     <section className="hero reel-first-hero magic-hero">
       <div className="magic-copy">
         <span className="magic-kicker"><span className="magic-kicker-dot" /> THE CREATOR UNIVERSE</span>
-        <h1>Create.<br /><span>Edit.</span> <em>Enchant.</em></h1>
+        <h1>Create.<br /><span>Edit.</span> <em>Share.</em></h1>
         <div className="magic-rule" />
+        <p className="magic-description">Trim videos, choose vertical or landscape formats, add captions and music, then preview and export in your browser. Your selected media stays on your device during editing.</p>
         <a className="btn magic-cta" href="#reel-editor">Open Reel Studio <span aria-hidden="true">↗</span></a>
       </div>
       <div className="magic-art" aria-hidden="true">
